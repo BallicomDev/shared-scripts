@@ -90,20 +90,17 @@ Determine if this issue belongs in this repository. Consider:
 
 ## Response Requirements
 
-## Response Format
-
-**ALWAYS** post a comment with your relevance assessment using this format:
-
 For RELEVANT issues:
-- Post: "✅ Repository relevance confirmed. This issue belongs in this repository."
-- Include metadata: ==REPO_CHECK=={"relevant":true,"confidence":"HIGH","reason":"brief explanation"}==REPO_CHECK==
+- Do NOT post a comment
+- Output only the metadata: ==REPO_CHECK=={"relevant":true,"confidence":"HIGH","reason":"brief explanation"}==REPO_CHECK==
+- The system will automatically add the "relevance-confirmed" label
 
 For IRRELEVANT issues:
-- Explain why the issue doesn't belong here
+- Post a comment explaining why the issue doesn't belong here
 - Suggest the correct repository if identifiable
-- Include metadata: ==REPO_CHECK=={"relevant":false,"confidence":"HIGH","suggested_repo":"owner/repo","reason":"brief explanation"}==REPO_CHECK==
+- Include metadata in your comment: ==REPO_CHECK=={"relevant":false,"confidence":"HIGH","suggested_repo":"owner/repo","reason":"brief explanation"}==REPO_CHECK==
 
-**Important**: You MUST post a comment in ALL cases to document the relevance decision.
+**Important**: Only comment when the issue is NOT relevant. For relevant issues, just output the metadata.
 EOF
 
   # Replace placeholders
