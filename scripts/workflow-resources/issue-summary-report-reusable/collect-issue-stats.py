@@ -38,27 +38,31 @@ print(f"Repository: {repo}")
 # Get all open issues
 print("Fetching open issues...")
 open_issues = run_gh_command(
-    f'gh api repos/{repo}/issues --paginate --jq . | jq -s "."'
+    f'gh api repos/{repo}/issues --paginate -q "."'
 )
 
 if not open_issues:
     open_issues = []
+elif not isinstance(open_issues, list):
+    open_issues = [open_issues]
 
 # Filter out pull requests
-open_issues = [i for i in open_issues if 'pull_request' not in i]
+open_issues = [i for i in open_issues if isinstance(i, dict) and 'pull_request' not in i]
 
 # Get recently closed issues (last 7 days)
 week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
 print(f"Fetching issues closed since {week_ago}...")
 closed_issues = run_gh_command(
-    f'gh api repos/{repo}/issues?state=closed&since={week_ago} --paginate --jq . | jq -s "."'
+    f'gh api repos/{repo}/issues?state=closed&since={week_ago} --paginate -q "."'
 )
 
 if not closed_issues:
     closed_issues = []
+elif not isinstance(closed_issues, list):
+    closed_issues = [closed_issues]
 
 # Filter out pull requests
-closed_issues = [i for i in closed_issues if 'pull_request' not in i]
+closed_issues = [i for i in closed_issues if isinstance(i, dict) and 'pull_request' not in i]
 
 # Calculate statistics
 stats = {
