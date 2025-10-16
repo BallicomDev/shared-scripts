@@ -25,7 +25,7 @@ get_config_value() {
   if [[ "$config_file" =~ \.ya?ml$ ]]; then
     # YAML format - use yq if available, fallback to grep/awk
     if command -v yq &>/dev/null; then
-      value=$(yq eval ".\"$key\"" "$config_file" 2>/dev/null)
+      value=$(yq eval ".$key" "$config_file" 2>/dev/null)
       if [[ "$value" == "null" || -z "$value" ]]; then
         value="$default"
       fi
