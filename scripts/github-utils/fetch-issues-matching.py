@@ -9,17 +9,30 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 
-def run_command(cmd, capture_output=True):
-    """Execute command and return result."""
-    result = subprocess.run(
-        cmd,
-        shell=True,
-        capture_output=capture_output,
-        text=True
-    )
+def run_command(cmd, capture_output=True, max_attempts=3, backoff_base=2):
+    """Execute command with retry logic for transient failures."""
+    for attempt in range(1, max_attempts + 1):
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=capture_output,
+            text=True
+        )
+
+        if result.returncode == 0:
+            return result
+
+        if attempt == max_attempts:
+            return result
+
+        wait_time = backoff_base ** attempt
+        print(f"Attempt {attempt}/{max_attempts} failed (exit {result.returncode}), retrying in {wait_time}s...", file=sys.stderr)
+        time.sleep(wait_time)
+
     return result
 
 

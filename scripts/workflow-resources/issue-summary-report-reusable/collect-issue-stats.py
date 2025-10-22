@@ -7,25 +7,37 @@ Generic script for collecting GitHub issue statistics
 import json
 import os
 import subprocess
+import sys
+import time
 from datetime import datetime, timedelta, timezone
 
-def run_gh_command(command):
-    """Run gh CLI command and return JSON result"""
-    result = subprocess.run(
-        command,
-        shell=True,
-        capture_output=True,
-        text=True,
-        env=os.environ
-    )
-    if result.returncode != 0:
-        print(f"Error running: {command}")
-        print(f"Error: {result.stderr}")
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return None
+def run_gh_command(command, max_attempts=3, backoff_base=2):
+    """Run gh CLI command with retry logic and return JSON result"""
+    for attempt in range(1, max_attempts + 1):
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            env=os.environ
+        )
+
+        if result.returncode == 0:
+            try:
+                return json.loads(result.stdout)
+            except json.JSONDecodeError:
+                return None
+
+        if attempt == max_attempts:
+            print(f"Error running: {command}", file=sys.stderr)
+            print(f"Error: {result.stderr}", file=sys.stderr)
+            return None
+
+        wait_time = backoff_base ** attempt
+        print(f"Attempt {attempt}/{max_attempts} failed (exit {result.returncode}), retrying in {wait_time}s...", file=sys.stderr)
+        time.sleep(wait_time)
+
+    return None
 
 # Get repository info from environment
 repo = os.environ.get('GITHUB_REPOSITORY', '')
