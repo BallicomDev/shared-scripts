@@ -79,12 +79,18 @@ def fetch_issue_complete(repo, issue_number, output_dir):
         print(f"ERROR: fetch-issue-complete.py not found", file=sys.stderr)
         return False
 
+    # Get GitHub token from environment
+    github_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+    if not github_token:
+        print(f"ERROR: GITHUB_TOKEN or GH_TOKEN environment variable required", file=sys.stderr)
+        return False
+
     # Create issue-specific output directory
     issue_dir = Path(output_dir) / str(issue_number)
     issue_dir.mkdir(parents=True, exist_ok=True)
 
-    # Fetch complete issue data
-    cmd = f"python3 {script} {repo} {issue_number} {issue_dir}"
+    # Fetch complete issue data with proper named arguments
+    cmd = f"python3 {script} --repo {repo} --issue {issue_number} --output-dir {issue_dir} --github-token {github_token}"
     result = run_command(cmd, capture_output=False)
 
     return result.returncode == 0
