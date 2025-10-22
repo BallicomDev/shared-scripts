@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 REPOSITORY="${REPOSITORY:-}"
 ISSUE_NUMBER="${ISSUE_NUMBER:-}"
 IMAGE_URLS="${IMAGE_URLS:-}"
@@ -14,7 +17,7 @@ gh label create image-analysis-needed \
   --description "Images detected, analysis needed" \
   2>/dev/null || true
 
-gh issue edit "${ISSUE_NUMBER}" \
+gh_retry issue edit "${ISSUE_NUMBER}" \
   --repo "${REPOSITORY}" \
   --add-label image-analysis-needed
 

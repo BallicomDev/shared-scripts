@@ -13,10 +13,13 @@
 
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 branch_name="claude/bug-${ISSUE_NUMBER}-reproduce"
 
 # Fail fast if branch already exists
-if gh api repos/${REPOSITORY}/git/refs/heads/${branch_name} 2>/dev/null; then
+if gh_retry api repos/${REPOSITORY}/git/refs/heads/${branch_name} 2>/dev/null; then
   echo "❌ ERROR: Branch ${branch_name} already exists!"
   echo "This is unexpected - the branch should not exist before bug reproduction starts."
   echo "Possible causes:"

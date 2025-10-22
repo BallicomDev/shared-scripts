@@ -4,6 +4,9 @@ set -euo pipefail
 # Auto-assign unassigned issues to default assignee
 # Uses GitHub REST API for simplicity and reliability
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 # Environment variables (required)
 : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY environment variable required}"
 : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable required}"
@@ -26,7 +29,7 @@ echo ""
 
 # Fetch all open unassigned issues
 echo "Fetching open unassigned issues..."
-ISSUES=$(gh api "repos/$GITHUB_REPOSITORY/issues" \
+ISSUES=$(gh_retry api "repos/$GITHUB_REPOSITORY/issues" \
   --method GET \
   --field state=open \
   --field per_page=100 \
@@ -57,7 +60,7 @@ while read -r issue; do
     ASSIGNED=$((ASSIGNED + 1))
   else
     # Assign using REST API
-    if gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUM" \
+    if gh_retry api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUM" \
       --method PATCH \
       --field assignees[]="$DEFAULT_ASSIGNEE" \
       --silent 2>/dev/null; then

@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 ISSUE_NUMBER="${ISSUE_NUMBER:-}"
 REPOSITORY="${REPOSITORY:-}"
 
 echo "📥 Fetching issue details for #${ISSUE_NUMBER}"
 
 # Fetch issue details using GitHub CLI
-gh issue view "${ISSUE_NUMBER}" \
+gh_retry issue view "${ISSUE_NUMBER}" \
   --repo "${REPOSITORY}" \
   --json title,body,state,labels \
   --jq '{

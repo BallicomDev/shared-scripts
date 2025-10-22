@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 # Wait for label application
 sleep 5
 
 # Get issue details
-ISSUE_JSON=$(gh api "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}" --jq '{
+ISSUE_JSON=$(gh_retry api "repos/${REPOSITORY}/issues/${ISSUE_NUMBER}" --jq '{
   state: .state,
   labels: [.labels[].name]
 }')

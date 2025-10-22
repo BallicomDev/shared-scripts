@@ -25,10 +25,13 @@
 
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 # Get issue data (fetch fresh if workflow_dispatch, use inputs otherwise)
 if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
   echo "📥 Fetching issue #${ISSUE_NUMBER} data from API..."
-  issue_json=$(gh api repos/${REPOSITORY}/issues/${ISSUE_NUMBER})
+  issue_json=$(gh_retry api repos/${REPOSITORY}/issues/${ISSUE_NUMBER})
   title=$(echo "$issue_json" | jq -r '.title')
   body=$(echo "$issue_json" | jq -r '.body // ""')
   labels=$(echo "$issue_json" | jq -c '[.labels[].name]')

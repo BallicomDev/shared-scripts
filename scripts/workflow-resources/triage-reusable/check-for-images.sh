@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 REPOSITORY="${REPOSITORY:-}"
 ISSUE_NUMBER="${ISSUE_NUMBER:-}"
 EVENT_NAME="${EVENT_NAME:-}"
@@ -10,7 +13,7 @@ INPUT_ISSUE_BODY="${INPUT_ISSUE_BODY:-}"
 echo "🔍 Checking for images and image analysis status..."
 
 # Get current issue labels
-LABELS=$(gh api repos/${REPOSITORY}/issues/${ISSUE_NUMBER}/labels --jq '.[].name' | tr '\n' ' ')
+LABELS=$(gh_retry api repos/${REPOSITORY}/issues/${ISSUE_NUMBER}/labels --jq '.[].name' | tr '\n' ' ')
 
 # Check label status
 if echo "$LABELS" | grep -q "image-analysis-complete"; then

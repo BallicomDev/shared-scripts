@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Source retry wrapper
+source .ai-tools-resources/scripts/github-utils/gh-retry.sh
+
 # Ensure config file exists, create from baseline if needed
 # This script is idempotent and safe to run multiple times
 # Supports both YAML and JSON formats (YAML is recommended)
@@ -28,7 +31,7 @@ fi
 # Try to fetch baseline config from GitHub using gh CLI (authenticated)
 if command -v gh &>/dev/null; then
   echo "Attempting to fetch via gh CLI..."
-  if gh api "repos/$BASELINE_REPO/contents/$BASELINE_FILE" --jq '.content' 2>/dev/null | base64 -d > "$CONFIG_FILE" 2>/dev/null; then
+  if gh_retry api "repos/$BASELINE_REPO/contents/$BASELINE_FILE" --jq '.content' 2>/dev/null | base64 -d > "$CONFIG_FILE" 2>/dev/null; then
     echo "✓ Config file created from baseline: $CONFIG_FILE"
     exit 0
   else
