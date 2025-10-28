@@ -13,6 +13,7 @@ FETCH_ISSUE_BODY="${FETCH_ISSUE_BODY:-}"
 INPUT_ISSUE_TITLE="${INPUT_ISSUE_TITLE:-}"
 INPUT_ISSUE_BODY="${INPUT_ISSUE_BODY:-}"
 IMAGE_ANALYSIS="${IMAGE_ANALYSIS:-}"
+WORKFLOW_VERSION="${WORKFLOW_VERSION:-unknown}"
 
 mkdir -p "${RUNNER_TEMP}/claude-prompts"
 
@@ -99,6 +100,7 @@ For IRRELEVANT issues:
 - Post a comment explaining why the issue doesn't belong here
 - Suggest the correct repository if identifiable
 - Include metadata in your comment: ==REPO_CHECK=={"relevant":false,"confidence":"HIGH","suggested_repo":"owner/repo","reason":"brief explanation"}==REPO_CHECK==
+- Add footer: ---\n*Analyzed by claude-triage vWORKFLOW_VERSION*
 
 **Important**: Only comment when the issue is NOT relevant. For relevant issues, just output the metadata.
 EOF
@@ -106,6 +108,7 @@ EOF
   # Replace placeholders
   sed -i "s/ISSUE_NUMBER/${ISSUE_NUMBER}/g" "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
   sed -i "s|REPOSITORY|${REPOSITORY}|g" "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
+  sed -i "s|WORKFLOW_VERSION|${WORKFLOW_VERSION}|g" "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
 fi
 
 # Create main triage prompt
@@ -219,16 +222,41 @@ Post a detailed comment using mcp__github__add_issue_comment with:
 
 ==METADATA=={"priority":"...","complexity":"...","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}]}==METADATA==
 
+4. Footer with workflow version (after metadata):
+
+---
+*Analyzed by claude-triage vWORKFLOW_VERSION*
+
 Remember: You are in READ-ONLY mode. Do NOT attempt to:
 - Create branches or make code changes
 - Use Edit, Write, Bash, or Task tools
 - Implement solutions
 
 Your role is EXCLUSIVELY analysis and commenting.
+
+## GitHub Magic Phrases - USE CAREFULLY
+
+**CRITICAL**: Avoid accidentally using GitHub's magic phrases unless intended:
+
+**Auto-close keywords** (work in PRs/commits, close issues when merged):
+- `closes #X`, `fixes #X`, `resolves #X` (and variations: closed, fixed, resolved)
+
+**Duplicate marking** (works in comments, creates duplicate link):
+- `Duplicate of #X` - Only use when explicitly marking duplicates
+
+**Safe alternatives**:
+- Instead of "This fixes #123" → use "This addresses #123"
+- Instead of "This is a duplicate of #123" → use "This appears related to #123" (unless you want the duplicate link)
+
+When referencing duplicates in your analysis:
+- List them in the metadata: `"duplicates":[{"issue":123,"confidence":"HIGH"}]`
+- Mention them in text using safe phrases: "This appears related to #123" or "See also #123"
+- Do NOT use "Duplicate of #X" in comments (reserved for when we actually want to mark as duplicate)
 EOF
 
 # Replace placeholders in triage prompt
 sed -i "s|REPOSITORY|${REPOSITORY}|g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 sed -i "s/ISSUE_NUMBER/${ISSUE_NUMBER}/g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+sed -i "s|WORKFLOW_VERSION|${WORKFLOW_VERSION}|g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 
 echo "✅ Prompts prepared successfully"
