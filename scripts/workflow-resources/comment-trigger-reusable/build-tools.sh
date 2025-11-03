@@ -11,6 +11,7 @@
 #   NEEDS_WORKFLOW_TOOLS - true/false
 #   NEEDS_RELEASE_TOOLS - true/false
 #   NEEDS_WRITE_TOOLS - true/false
+#   NEEDS_COMMENT_EDIT - true/false
 #   GITHUB_OUTPUT - Path to GitHub Actions output file
 #
 # Outputs (via GITHUB_OUTPUT):
@@ -113,6 +114,15 @@ if [[ "${NEEDS_WRITE_TOOLS}" == "true" ]]; then
   echo "    - push_commits"
   TOOLS="${TOOLS},mcp__github__create_or_update_file,mcp__github__delete_file"
   TOOLS="${TOOLS},mcp__github__create_commit,mcp__github__push_commits"
+  echo ""
+fi
+
+# Add comment editing tools if pattern detected
+if [[ "${NEEDS_COMMENT_EDIT}" == "true" ]]; then
+  echo "✅ Comment Edit Pattern Detected"
+  echo "  Granting Comment Editing Tools:"
+  echo "    - update_issue_comment"
+  TOOLS="${TOOLS},mcp__github__update_issue_comment"
   echo ""
 fi
 

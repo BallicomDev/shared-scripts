@@ -107,4 +107,16 @@ else
   echo "needs_image_analysis=false" >> "$GITHUB_OUTPUT"
 fi
 
+# -------------------------------------------------------------------
+# COMMENT EDITING PATTERNS - Enable comment editing tools
+# -------------------------------------------------------------------
+if echo "$COMMENT_BODY" | grep -iE "(edit|update|modify|change|fix).*(comment|your comment)" > /dev/null || \
+   echo "$COMMENT_BODY" | grep -iE "edit.*in.*place" > /dev/null || \
+   echo "$COMMENT_BODY" | grep -iE "do not (make|create) (a )?new comment" > /dev/null; then
+  echo "Comment editing pattern detected"
+  echo "needs_comment_edit=true" >> "$GITHUB_OUTPUT"
+else
+  echo "needs_comment_edit=false" >> "$GITHUB_OUTPUT"
+fi
+
 echo "Pattern detection complete"
