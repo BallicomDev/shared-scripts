@@ -30,14 +30,14 @@ echo "📋 Base Tools (Always Enabled):"
 echo "  - Issue/Comment management"
 echo "  - File reading (get_file_contents)"
 echo "  - Commit/ref reading"
-echo "  - Read, WebFetch"
+echo "  - Read, WebFetch, Glob, Grep (code search)"
 
 TOOLS="mcp__github__create_issue_comment,mcp__github__add_issue_comment"
 TOOLS="${TOOLS},mcp__github__get_issue,mcp__github__list_issue_comments,mcp__github__update_issue"
 TOOLS="${TOOLS},mcp__github__create_ref,mcp__github__delete_ref,mcp__github__get_ref,mcp__github__list_refs"
 TOOLS="${TOOLS},mcp__github__get_file_contents,mcp__github__get_commit,mcp__github__list_commits"
 TOOLS="${TOOLS},mcp__github__create_issue"
-TOOLS="${TOOLS},Read,WebFetch"
+TOOLS="${TOOLS},Read,WebFetch,Glob,Grep"
 echo ""
 
 # Add PR creation tools if pattern detected
