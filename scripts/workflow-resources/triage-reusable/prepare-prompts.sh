@@ -212,20 +212,93 @@ Provide a comprehensive triage analysis. You must:
 - **moderate**: Multi-file changes, some complexity (1-3 days)
 - **complex**: Architecture changes, significant effort (3+ days)
 
+## Code Search Requirements
+
+**CRITICAL**: You MUST aggressively search the codebase to find relevant source code.
+
+For EVERY issue, you must:
+1. **Identify key terms** from the issue (class names, method names, table names, file types, error messages, function names)
+2. **Use the Read tool** to examine repository structure and search for relevant files
+3. **Search strategically**: Look in logical places based on issue type (models/, controllers/, views/, migrations/, config/, etc.)
+4. **Find specific locations**: Identify exact files, classes, methods, and functions that relate to the issue
+5. **Create GitHub permalinks** to the specific lines/sections you find relevant
+
+**GitHub Permalink Format**:
+```
+https://github.com/{owner}/{repo}/blob/{branch}/{path}#L{start}-L{end}
+```
+
+For single lines: `#L45`
+For ranges: `#L45-L67`
+
+**Examples**:
+- `https://github.com/BallicomDev/example/blob/main/src/Customer.php#L45-L67` - Customer class definition
+- `https://github.com/BallicomDev/example/blob/main/database/schema.sql#L123` - customers table schema
+
+**When to search**:
+- **Bug reports**: Find the code that likely contains the bug (exact method/class if possible)
+- **Feature requests**: Find where similar functionality exists or where new code would go
+- **Database issues**: Find schema files, migration files, ORM models, or query builders
+- **API issues**: Find controller files, route definitions, API handlers
+- **UI issues**: Find component files, template files, stylesheets
+- **Configuration issues**: Find config files, environment files
+- **Performance issues**: Find the slow queries, heavy computations, or inefficient loops
+
+**If you cannot find relevant code**:
+- State clearly in the Related Source Code section: "No specific source code files could be identified for this issue"
+- Explain why (e.g., "Issue description is too vague to pinpoint code", "Requires architecture discussion before identifying files", "Issue is about process/documentation, not code")
+- DO NOT skip the section - always include it even if empty with explanation
+
+**Important**: Use actual file paths from the repository. Don't guess or make up file names.
+
 ## Required Output
 
 Post a detailed comment using mcp__github__add_issue_comment with:
 
 1. A "## Triage Analysis" section with your assessment
-2. Technical insights and recommendations
-3. Hidden metadata at the end:
+2. A "### Related Source Code" section with links to relevant files (REQUIRED - see below)
+3. Technical insights and recommendations
+4. Hidden metadata at the end:
 
 ==METADATA=={"priority":"...","complexity":"...","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}]}==METADATA==
 
-4. Footer with workflow version (after metadata):
+5. Footer with workflow version (after metadata):
 
 ---
 *Analyzed by claude-triage vWORKFLOW_VERSION*
+
+**Required: Related Source Code Section Format**
+
+You MUST include a "### Related Source Code" section in your triage comment. Format:
+
+### Related Source Code
+
+**[Category]**: Description of what this code does and how it relates to the issue
+- [`filename.ext:L123-L145`](https://github.com/owner/repo/blob/branch/path/filename.ext#L123-L145) - Brief description of what's at this location
+
+**Examples**:
+
+For a database issue:
+### Related Source Code
+
+**Database Schema**:
+- [`database/schema.sql:L45-L67`](https://github.com/BallicomDev/example/blob/main/database/schema.sql#L45-L67) - `customers` table definition with B2B/B2C fields
+- [`models/Customer.php:L12-L34`](https://github.com/BallicomDev/example/blob/main/models/Customer.php#L12-L34) - Customer model class
+
+**Order Processing**:
+- [`controllers/OrderController.php:L156`](https://github.com/BallicomDev/example/blob/main/controllers/OrderController.php#L156) - Order creation method where customer type could be captured
+
+For a UI bug:
+### Related Source Code
+
+**Component Files**:
+- [`src/components/LoginForm.tsx:L23-L45`](https://github.com/owner/repo/blob/main/src/components/LoginForm.tsx#L23-L45) - Login form component with the broken validation
+- [`src/styles/form.css:L67`](https://github.com/owner/repo/blob/main/src/styles/form.css#L67) - CSS rule causing the layout issue
+
+If no relevant code found:
+### Related Source Code
+
+No specific source code files could be identified for this issue. The issue description is too vague to pinpoint exact code locations. Recommend requesting more details about which specific functionality is affected.
 
 Remember: You are in READ-ONLY mode. Do NOT attempt to:
 - Create branches or make code changes
