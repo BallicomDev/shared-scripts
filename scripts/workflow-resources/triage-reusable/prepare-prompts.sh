@@ -244,10 +244,34 @@ For ranges: `#L45-L67`
 - **Configuration issues**: Find config files, environment files
 - **Performance issues**: Find the slow queries, heavy computations, or inefficient loops
 
-**If you cannot find relevant code**:
-- State clearly in the Related Source Code section: "No specific source code files could be identified for this issue"
-- Explain why (e.g., "Issue description is too vague to pinpoint code", "Requires architecture discussion before identifying files", "Issue is about process/documentation, not code")
-- DO NOT skip the section - always include it even if empty with explanation
+**CRITICAL QUALITY STANDARDS**:
+
+1. **ONLY link to code that is DIRECTLY relevant to this specific issue**
+   - Don't link to random files just because they contain a keyword
+   - Don't link to generic base classes unless the issue specifically mentions them
+   - Don't link to unrelated features that happen to use similar patterns
+
+2. **Quality over quantity**:
+   - 0 relevant links > 5 irrelevant links
+   - It's better to say "no relevant code found" than to link to tangentially related files
+   - Each link should have a clear, specific reason for relevance
+
+3. **Verify relevance before linking**:
+   - Read the actual code at the location you're linking to
+   - Confirm it's actually related to the issue (not just contains a search term)
+   - Only link if you can explain WHY this specific code is relevant
+
+4. **If you cannot find relevant code**:
+   - State clearly: "No specific source code files could be identified for this issue"
+   - Explain why (e.g., "Issue description lacks specific details like file names, error messages, or component names")
+   - Suggest what information would help: "To identify relevant code, please provide: [specific details needed]"
+   - DO NOT link to random files to fill the section
+
+5. **Red flags for bad links**:
+   - ❌ "likely" or "probably" in your reasoning
+   - ❌ "generic X handling" or "base Y functionality"
+   - ❌ Linking to files you haven't actually read
+   - ❌ Linking to entire large files with no specific line numbers
 
 **Important**: Use actual file paths from the repository. Don't guess or make up file names.
 
@@ -269,12 +293,16 @@ Post a detailed comment using mcp__github__add_issue_comment with:
 
 **Required: Related Source Code Section Format**
 
-You MUST include a "### Related Source Code" section in your triage comment. Format:
+You MUST include a "### Related Source Code" section in your triage comment.
+
+**IMPORTANT**: This section should contain ONLY code that is DIRECTLY relevant to the issue. Empty/no-code-found is perfectly acceptable and preferred over linking to tangentially related files.
+
+Format when you HAVE found relevant code:
 
 ### Related Source Code
 
-**[Category]**: Description of what this code does and how it relates to the issue
-- [`filename.ext:L123-L145`](https://github.com/owner/repo/blob/branch/path/filename.ext#L123-L145) - Brief description of what's at this location
+**[Category]**: Description of what this code does and how it relates to THIS SPECIFIC issue
+- [`filename.ext:L123-L145`](https://github.com/owner/repo/blob/branch/path/filename.ext#L123-L145) - Specific explanation of why this exact code location is relevant
 
 **Examples**:
 
@@ -295,10 +323,23 @@ For a UI bug:
 - [`src/components/LoginForm.tsx:L23-L45`](https://github.com/owner/repo/blob/main/src/components/LoginForm.tsx#L23-L45) - Login form component with the broken validation
 - [`src/styles/form.css:L67`](https://github.com/owner/repo/blob/main/src/styles/form.css#L67) - CSS rule causing the layout issue
 
-If no relevant code found:
+If no relevant code found (GOOD example - be specific and helpful):
 ### Related Source Code
 
-No specific source code files could be identified for this issue. The issue description is too vague to pinpoint exact code locations. Recommend requesting more details about which specific functionality is affected.
+Unable to identify specific source code files for this issue.
+
+**Why**: The issue description lacks specific technical details:
+- No file names, paths, or components mentioned
+- No error messages or stack traces provided
+- No specific functionality or features referenced
+
+**To identify relevant code, please provide**:
+- Which specific feature or page is affected? (e.g., "customer checkout page", "order history report")
+- Are there any error messages or logs?
+- Which files or components have you already investigated?
+- What specific behavior are you observing?
+
+Once these details are provided, we can pinpoint the exact code locations that need modification.
 
 Remember: You are in READ-ONLY mode. Do NOT attempt to:
 - Create branches or make code changes
