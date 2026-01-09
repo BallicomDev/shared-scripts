@@ -7,10 +7,12 @@ import logging
 import os
 import re
 import sys
+import time
 import urllib.request
 import urllib.error
+from functools import wraps
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from html.parser import HTMLParser
 
 
@@ -21,6 +23,81 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
+
+
+# Retry configuration
+MAX_RETRIES = 5
+INITIAL_RETRY_DELAY = 1  # seconds
+RETRY_BACKOFF_MULTIPLIER = 2
+
+
+def retry_on_transient_errors(func: Callable) -> Callable:
+    """
+    Decorator to retry function on transient HTTP errors with exponential backoff.
+
+    Retries on:
+    - HTTP 502 Bad Gateway
+    - HTTP 503 Service Unavailable
+    - HTTP 504 Gateway Timeout
+    - Network/connection errors (URLError)
+
+    Uses exponential backoff: 1s, 2s, 4s, 8s, 16s
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        last_exception = None
+        retry_delay = INITIAL_RETRY_DELAY
+
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                return func(*args, **kwargs)
+
+            except urllib.error.HTTPError as e:
+                # Only retry on transient server errors
+                if e.code in (502, 503, 504):
+                    last_exception = e
+                    if attempt < MAX_RETRIES:
+                        logger.warning(
+                            f"Transient error ({e.code} {e.reason}) on attempt {attempt}/{MAX_RETRIES}. "
+                            f"Retrying in {retry_delay}s..."
+                        )
+                        time.sleep(retry_delay)
+                        retry_delay *= RETRY_BACKOFF_MULTIPLIER
+                        continue
+                    else:
+                        logger.error(
+                            f"Max retries ({MAX_RETRIES}) reached for transient error {e.code}. "
+                            f"Giving up."
+                        )
+                else:
+                    # For non-transient HTTP errors (401, 403, 404, etc.), don't retry
+                    raise
+
+            except urllib.error.URLError as e:
+                # Retry on network/connection errors (timeouts, connection refused, etc.)
+                last_exception = e
+                if attempt < MAX_RETRIES:
+                    logger.warning(
+                        f"Network error ({e.reason}) on attempt {attempt}/{MAX_RETRIES}. "
+                        f"Retrying in {retry_delay}s..."
+                    )
+                    time.sleep(retry_delay)
+                    retry_delay *= RETRY_BACKOFF_MULTIPLIER
+                    continue
+                else:
+                    logger.error(
+                        f"Max retries ({MAX_RETRIES}) reached for network error. "
+                        f"Giving up."
+                    )
+
+            except Exception:
+                # For other exceptions, don't retry
+                raise
+
+        # If we exhausted all retries, raise the last exception
+        raise last_exception
+
+    return wrapper
 
 
 class AttachmentExtractor(HTMLParser):
@@ -204,6 +281,7 @@ class IssueDataFetcher:
             logger.error(f"Failed to create directory structure: {e}")
             raise
 
+    @retry_on_transient_errors
     def fetch_issue_html(self, repo: str, issue_number: int, github_token: str) -> Dict[str, Any]:
         """Fetch issue data from GitHub API with body_html format"""
         url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
@@ -262,6 +340,26 @@ class IssueDataFetcher:
                 f"Unexpected error fetching issue data: {e}"
             ) from e
 
+    @retry_on_transient_errors
+    def _fetch_comments_page(self, api_url: str, github_token: str) -> tuple:
+        """Fetch a single page of comments from GitHub API (with retry logic)"""
+        # Create request with authentication and full+json accept header
+        request = urllib.request.Request(api_url)
+        request.add_header('Authorization', f'token {github_token}')
+        request.add_header('Accept', 'application/vnd.github.full+json')
+        request.add_header('User-Agent', 'github-issue-fetcher')
+
+        # Make API request
+        with urllib.request.urlopen(request, timeout=30) as response:
+            # Parse JSON response
+            comments_data = json.loads(response.read().decode('utf-8'))
+
+            # Check for Link header for pagination
+            link_header = response.headers.get('Link', '')
+            has_next_page = 'rel="next"' in link_header
+
+            return comments_data, has_next_page
+
     def fetch_comments_html(self, repo: str, issue_number: int, github_token: str) -> List[Dict[str, Any]]:
         """Fetch all comments for an issue with HTML body included"""
         logger.info(f"Fetching comments for issue #{issue_number}...")
@@ -277,52 +375,41 @@ class IssueDataFetcher:
 
             logger.info(f"Fetching comments page {page}...")
 
-            # Create request with authentication and full+json accept header
-            request = urllib.request.Request(api_url)
-            request.add_header('Authorization', f'token {github_token}')
-            request.add_header('Accept', 'application/vnd.github.full+json')
-            request.add_header('User-Agent', 'github-issue-fetcher')
-
             try:
-                # Make API request
-                with urllib.request.urlopen(request, timeout=30) as response:
-                    # Parse JSON response
-                    comments_data = json.loads(response.read().decode('utf-8'))
+                # Fetch page (with automatic retry on transient errors)
+                comments_data, has_next_page = self._fetch_comments_page(api_url, github_token)
 
-                    # If empty, we've reached the end
-                    if not comments_data:
-                        logger.info(f"No more comments (page {page} was empty)")
-                        break
+                # If empty, we've reached the end
+                if not comments_data:
+                    logger.info(f"No more comments (page {page} was empty)")
+                    break
 
-                    # Extract comment data
-                    for comment in comments_data:
-                        body_html = comment.get('body_html', '')
+                # Extract comment data
+                for comment in comments_data:
+                    body_html = comment.get('body_html', '')
 
-                        # Extract attachments from comment body_html
-                        attachments = extract_attachments_from_html(body_html)
+                    # Extract attachments from comment body_html
+                    attachments = extract_attachments_from_html(body_html)
 
-                        comment_info = {
-                            'comment_id': comment['id'],
-                            'author': comment['user']['login'] if comment.get('user') else 'ghost',
-                            'created_at': comment['created_at'],
-                            'body': comment.get('body', ''),
-                            'body_html': body_html,
-                            '_attachments': attachments
-                        }
-                        all_comments.append(comment_info)
+                    comment_info = {
+                        'comment_id': comment['id'],
+                        'author': comment['user']['login'] if comment.get('user') else 'ghost',
+                        'created_at': comment['created_at'],
+                        'body': comment.get('body', ''),
+                        'body_html': body_html,
+                        '_attachments': attachments
+                    }
+                    all_comments.append(comment_info)
 
-                    logger.info(f"✓ Fetched {len(comments_data)} comments from page {page}")
+                logger.info(f"✓ Fetched {len(comments_data)} comments from page {page}")
 
-                    # Check for Link header for pagination
-                    link_header = response.headers.get('Link', '')
+                # Check if there are more pages
+                if not has_next_page:
+                    logger.info(f"✓ All comments fetched (no more pages)")
+                    break
 
-                    # If there's no 'next' link, we're done
-                    if 'rel="next"' not in link_header:
-                        logger.info(f"✓ All comments fetched (no more pages)")
-                        break
-
-                    # Move to next page
-                    page += 1
+                # Move to next page
+                page += 1
 
             except urllib.error.HTTPError as e:
                 error_body = e.read().decode('utf-8') if e.fp else 'No error body'
@@ -402,6 +489,12 @@ class IssueDataFetcher:
         else:
             return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
 
+    @retry_on_transient_errors
+    def _download_file(self, url: str) -> bytes:
+        """Download file from URL (with retry logic)"""
+        with urllib.request.urlopen(url, timeout=30) as response:
+            return response.read()
+
     def download_attachment(self, url: str, output_path: Path) -> Dict[str, Any]:
         """Download a single attachment from a JWT-authenticated URL"""
         try:
@@ -410,10 +503,9 @@ class IssueDataFetcher:
             # Create parent directories if needed
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Download file with timeout
+            # Download file with timeout and automatic retry on transient errors
             # Note: JWT tokens are embedded in URL, no additional auth headers needed
-            with urllib.request.urlopen(url, timeout=30) as response:
-                file_data = response.read()
+            file_data = self._download_file(url)
 
             # Write file to disk
             with open(output_path, 'wb') as f:
