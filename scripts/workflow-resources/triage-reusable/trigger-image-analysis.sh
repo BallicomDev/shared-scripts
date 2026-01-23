@@ -10,8 +10,8 @@ IMAGE_URLS="${IMAGE_URLS:-}"
 
 echo "🚀 Triggering image analysis workflow..."
 
-# Add needed label
-gh label create image-analysis-needed \
+# Add needed label (with retry)
+gh_retry label create image-analysis-needed \
   --repo "${REPOSITORY}" \
   --color fbca04 \
   --description "Images detected, analysis needed" \
@@ -21,8 +21,8 @@ gh_retry issue edit "${ISSUE_NUMBER}" \
   --repo "${REPOSITORY}" \
   --add-label image-analysis-needed
 
-# Trigger image analyzer
-gh workflow run claude-image-analyzer.yml \
+# Trigger image analyzer (with retry)
+gh_retry workflow run claude-image-analyzer.yml \
   --repo "${REPOSITORY}" \
   --field issue_number="${ISSUE_NUMBER}" \
   --field image_urls="${IMAGE_URLS}" \

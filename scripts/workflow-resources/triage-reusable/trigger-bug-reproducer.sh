@@ -39,7 +39,7 @@ fi
 # Trigger bug reproducer
 echo "Triggering bug reproducer workflow"
 
-gh workflow run claude-bug-reproducer.yml \
+gh_retry workflow run claude-bug-reproducer.yml \
   --repo "${REPOSITORY}" \
   --field issue_number="${ISSUE_NUMBER}" \
   --field triggered_by_triage=true || echo "Trigger failed (non-fatal)"
