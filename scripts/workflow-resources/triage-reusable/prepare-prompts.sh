@@ -196,7 +196,78 @@ Provide a comprehensive triage analysis. You must:
 4. **Identify areas** affected (frontend/backend/api/security/database/performance/testing/docs/infrastructure)
 5. **Apply special flags** if applicable (good-first-issue/breaking-change/needs-discussion)
 6. **Classify issue type** (bug/feature/enhancement/documentation/question)
-7. **Search for duplicates** if it's a bug report
+7. **Search for duplicates and related issues** using `mcp__github__search_issues`
+
+### Duplicate and Related Issue Search
+
+**CRITICAL**: For EVERY issue (not just bugs), search for duplicates and related issues.
+
+**When to Search**: Always - for bugs, features, enhancements, documentation, questions.
+
+**How to Search**:
+
+1. **Extract 2-4 key terms** from the issue title and body:
+   - Technical terms (e.g., "authentication", "order flagging", "database query")
+   - Feature areas (e.g., "checkout", "email", "API", "admin panel")
+   - Component names (e.g., "OrderController", "LoginForm", "customers table")
+   - Error messages (e.g., "AUTH_TIMEOUT_ERROR", "500 Internal Server Error")
+
+2. **Perform searches** with `mcp__github__search_issues` using different keyword combinations:
+   - Try title keywords first (e.g., "order flagging")
+   - Try feature area terms (e.g., "duplicate customer")
+   - Try specific technical terms (e.g., "order flag checker")
+
+3. **Analyze search results**:
+   - Read issue titles and bodies carefully
+   - Look for same feature areas, same components, similar symptoms
+   - Check if issues mention each other
+
+**What to Look For**:
+
+- **Exact Duplicates** (HIGH confidence):
+  - Same error message or stack trace
+  - Same symptoms and reproduction steps
+  - Same feature/component affected
+  - Posted by same user or within days of original
+
+- **Related Issues** (MEDIUM confidence):
+  - Same feature area (e.g., both about "order flagging")
+  - Connected functionality (e.g., display bug + logic bug in same feature)
+  - Similar keywords but different aspects
+
+- **Possibly Related** (LOW confidence):
+  - Overlapping keywords but different contexts
+  - Tangentially related features
+
+**Output Format**:
+
+Include in metadata:
+```json
+"duplicates": [
+  {
+    "issue": 123,
+    "confidence": "HIGH",
+    "type": "duplicate",
+    "reason": "Same error message and reproduction steps"
+  },
+  {
+    "issue": 456,
+    "confidence": "MEDIUM",
+    "type": "related",
+    "reason": "Both about order flagging feature"
+  }
+]
+```
+
+**In your triage comment**:
+- HIGH confidence duplicates: "This appears to be a duplicate of #123"
+- MEDIUM/LOW related: "Related issues: #456 (both about order flagging)"
+
+**Important Notes**:
+- Empty results are OK - not every issue has duplicates/related issues
+- Don't force relationships - only mark if genuinely related
+- Use MEDIUM confidence for "same feature, different aspects"
+- Use LOW confidence for "might be related but uncertain"
 
 ## Priority Guidelines
 
