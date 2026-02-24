@@ -14,6 +14,7 @@ INPUT_ISSUE_TITLE="${INPUT_ISSUE_TITLE:-}"
 INPUT_ISSUE_BODY="${INPUT_ISSUE_BODY:-}"
 IMAGE_ANALYSIS="${IMAGE_ANALYSIS:-}"
 WORKFLOW_VERSION="${WORKFLOW_VERSION:-unknown}"
+NEEDS_INFO_MODE="${NEEDS_INFO_MODE:-false}"
 
 mkdir -p "${RUNNER_TEMP}/claude-prompts"
 
@@ -197,6 +198,7 @@ Provide a comprehensive triage analysis. You must:
 5. **Apply special flags** if applicable (good-first-issue/breaking-change/needs-discussion)
 6. **Classify issue type** (bug/feature/enhancement/documentation/question)
 7. **Search for duplicates and related issues** using `mcp__github__search_issues`
+8. **Determine if more information is needed** - set `needsInfo: true` in metadata only if the issue is too vague to triage meaningfully
 
 ### Duplicate and Related Issue Search
 
@@ -355,7 +357,7 @@ Post a detailed comment using mcp__github__add_issue_comment with:
 3. Technical insights and recommendations
 4. Hidden metadata at the end:
 
-==METADATA=={"priority":"...","complexity":"...","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}]}==METADATA==
+==METADATA=={"priority":"...","complexity":"...","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA==
 
 5. Footer with workflow version (after metadata):
 
@@ -412,6 +414,29 @@ Unable to identify specific source code files for this issue.
 
 Once these details are provided, we can pinpoint the exact code locations that need modification.
 
+## Needs-Info Decision
+
+The `needsInfo` field in metadata controls whether the `needs-info` label is applied:
+
+**Set `"needsInfo": true` when:**
+- The issue is too vague to determine priority, complexity, or affected area
+- A bug report has NO reproduction steps and NO error messages - impossible to assess
+- A feature request has NO description of desired behavior beyond a one-line title
+- You genuinely cannot triage this without specific information from the reporter
+
+**When setting `needsInfo: true`:**
+- Post a comment asking for the SINGLE most important piece of missing information
+- Be specific: "Which page or feature is affected?" not "Please provide more details"
+- Phrase as a friendly question, not a demand
+- The workflow will automatically re-run when the user replies
+
+**Set `"needsInfo": false` (default) when:**
+- There is enough information to perform a meaningful triage
+- The issue is clear even if not perfectly detailed
+- You have found relevant source code or can assess priority/complexity
+
+**Important**: Avoid asking for info just to be thorough. If you can assign reasonable priority and complexity, proceed with triage. Only ask when the issue is genuinely untriageable.
+
 Remember: You are in READ-ONLY mode. Do NOT attempt to:
 - Create branches or make code changes
 - Use Edit, Write, Bash, or Task tools
@@ -443,5 +468,30 @@ EOF
 sed -i "s|REPOSITORY|${REPOSITORY}|g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 sed -i "s/ISSUE_NUMBER/${ISSUE_NUMBER}/g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 sed -i "s|WORKFLOW_VERSION|${WORKFLOW_VERSION}|g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+
+# If in QnA mode, prepend special context to triage prompt
+if [[ "${NEEDS_INFO_MODE}" == "true" ]]; then
+  echo "🔄 QnA mode detected - adding re-triage context to prompt"
+  ORIGINAL_PROMPT=$(cat "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt")
+  cat > "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" << 'QNAEOF'
+## QnA Re-Triage Mode
+
+⚠️ **Context**: This issue previously had a `needs-info` label because information was
+insufficient for triage. A non-bot user has now commented with additional information.
+
+**Your task**:
+1. Read the complete issue manifest at the path provided in the system prompt (includes all comments)
+2. Review the user's new response - is there now enough information to triage?
+3. If YES: perform complete triage and set `"needsInfo": false` in metadata
+4. If NO: ask ONE specific follow-up question (the single most important gap) and set `"needsInfo": true`
+
+Do NOT ask multiple questions. Focus on the single most critical missing piece.
+
+---
+
+QNAEOF
+  echo "${ORIGINAL_PROMPT}" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+  echo "✅ QnA mode context prepended to triage prompt"
+fi
 
 echo "✅ Prompts prepared successfully"
