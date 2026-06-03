@@ -139,18 +139,31 @@ class AttachmentExtractor(HTMLParser):
                 self.attachments.append(attachment)
 
     def _is_attachment_url(self, url: str) -> bool:
-        """Check if URL is a GitHub attachment URL"""
+        """Check if URL is a GitHub attachment URL (image asset or uploaded file)"""
         if not url:
             return False
 
-        # Check for GitHub attachment domains
+        # Image/asset CDN hosts (screenshots, pasted images). These carry a
+        # short-lived JWT in the URL and download without an auth header.
         attachment_domains = [
             'user-attachments.githubusercontent.com',
             'private-user-images.githubusercontent.com',
             'github-production-user-asset',  # Newer GitHub asset URLs
         ]
+        if any(domain in url for domain in attachment_domains):
+            return True
 
-        return any(domain in url for domain in attachment_domains)
+        # Uploaded file attachments (logs, zips, tarballs, PDFs, etc.) are served
+        # from github.com itself, NOT the asset CDN, in one of two forms:
+        #   https://github.com/user-attachments/files/<id>/<name>
+        #   https://github.com/<owner>/<repo>/files/<id>/<name>   (legacy)
+        # These 404 without an auth header on private repos (see _download_file).
+        if '/user-attachments/files/' in url:
+            return True
+        if re.search(r'https?://github\.com/[^/\s]+/[^/\s]+/files/\d+/', url):
+            return True
+
+        return False
 
     def _extract_filename(self, url: str) -> str:
         """Extract filename from URL path"""
@@ -491,8 +504,17 @@ class IssueDataFetcher:
 
     @retry_on_transient_errors
     def _download_file(self, url: str) -> bytes:
-        """Download file from URL (with retry logic)"""
-        with urllib.request.urlopen(url, timeout=30) as response:
+        """Download file from URL (with retry logic).
+
+        Image/asset URLs embed a short-lived JWT and need no auth header.
+        Uploaded-file attachments are served from github.com and require the
+        token to fetch the signed redirect - they 404 otherwise on private repos.
+        """
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'github-issue-fetcher')
+        if url.startswith('https://github.com/'):
+            req.add_header('Authorization', f'token {self.github_token}')
+        with urllib.request.urlopen(req, timeout=30) as response:
             return response.read()
 
     def download_attachment(self, url: str, output_path: Path) -> Dict[str, Any]:
