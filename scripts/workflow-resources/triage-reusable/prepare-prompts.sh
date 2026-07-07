@@ -40,24 +40,30 @@ EOF
   # Add reference to CLAUDE.md if it exists
   if [ -f "CLAUDE.md" ]; then
     echo "📖 Found CLAUDE.md in target repository"
-    echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-    echo "Please review the repository context in @CLAUDE.md" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-    echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
+    {
+      echo ""
+      echo "Please review the repository context in @CLAUDE.md"
+      echo ""
+    } >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
   fi
 
   # Append prompt-extra content if it exists (safe - no variable substitution)
   if [ -f ".github/prompt_extra/triage_prompt_extra.md" ]; then
     echo "📖 Found prompt-extra file"
-    echo "## Project-Specific Context" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-    echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-    cat .github/prompt_extra/triage_prompt_extra.md >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-    echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
+    {
+      echo "## Project-Specific Context"
+      echo ""
+      cat .github/prompt_extra/triage_prompt_extra.md
+      echo ""
+    } >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
   fi
 
   # Add issue section header
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-  echo "## Issue to Evaluate" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
+  {
+    echo ""
+    echo "## Issue to Evaluate"
+    echo ""
+  } >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
 
   # Add issue title
   echo -n "**Title:** " >> "${RUNNER_TEMP}/claude-prompts/relevance-check.txt"
@@ -124,25 +130,31 @@ EOF
 
 # Add reference to CLAUDE.md if it exists
 if [ -f "CLAUDE.md" ]; then
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "Please review the repository context in @CLAUDE.md" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+  {
+    echo ""
+    echo "Please review the repository context in @CLAUDE.md"
+    echo ""
+  } >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 fi
 
 # Append prompt-extra content if it exists (safe - no variable substitution)
 if [ -f ".github/prompt_extra/triage_prompt_extra.md" ]; then
-  echo "## Project-Specific Context" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  cat .github/prompt_extra/triage_prompt_extra.md >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+  {
+    echo "## Project-Specific Context"
+    echo ""
+    cat .github/prompt_extra/triage_prompt_extra.md
+    echo ""
+  } >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 fi
 
 # Add issue section
-echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-echo "## Issue to Analyze" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-echo "Issue #ISSUE_NUMBER" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+{
+  echo ""
+  echo "## Issue to Analyze"
+  echo ""
+  echo "Issue #ISSUE_NUMBER"
+  echo ""
+} >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 
 # Add issue title
 echo -n "**Title:** " >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
@@ -167,17 +179,19 @@ fi
 
 # Add image analysis results if available
 if [[ -n "${IMAGE_ANALYSIS}" ]]; then
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "## Image Analysis Results" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "The following image analysis has been performed on screenshots in this issue:" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  cat >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" <<'EOF'
+  {
+    echo ""
+    echo "## Image Analysis Results"
+    echo ""
+    echo "The following image analysis has been performed on screenshots in this issue:"
+    echo ""
+    cat <<'EOF'
 ${IMAGE_ANALYSIS}
 EOF
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "**Use these image insights in your triage analysis.** Consider extracted error messages, visual observations, and technical recommendations when assessing priority, complexity, and areas affected." >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
-  echo "" >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+    echo ""
+    echo "**Use these image insights in your triage analysis.** Consider extracted error messages, visual observations, and technical recommendations when assessing priority, complexity, and areas affected."
+    echo ""
+  } >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 fi
 
 # Add the rest of the triage prompt
@@ -218,6 +232,18 @@ Provide a comprehensive triage analysis. You must:
    - Try title keywords first (e.g., "order flagging")
    - Try feature area terms (e.g., "duplicate customer")
    - Try specific technical terms (e.g., "order flag checker")
+
+   **CRITICAL — keep every search small and scoped.** The search tool caps its
+   response size; a broad query can return more data than that cap allows and the
+   call will fail. To stay under the limit on every call:
+   - ALWAYS pass `perPage: 5` (never request a large page).
+   - Scope the query with qualifiers: `repo:OWNER/REPO is:issue` plus your key
+     terms (search only this repository, issues only).
+   - Start **narrow** (2-3 specific terms). Only if a narrow search returns
+     nothing should you broaden by dropping a term — never start broad.
+   - Prefer several small, specific queries over one large catch-all query.
+   - If a search still errors on size, make the query MORE specific (add a term
+     or a qualifier); do not retry the same broad query.
 
 3. **Analyze search results**:
    - Read issue titles and bodies carefully
