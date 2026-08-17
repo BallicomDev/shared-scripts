@@ -207,7 +207,10 @@ Provide a comprehensive triage analysis. You must:
 
 1. **Analyze the issue** thoroughly
 2. **Determine priority** (critical/high/medium/low)
-3. **Assess complexity** (trivial/simple/moderate/complex)
+3. **Estimate T-shirt size** (XS/S/M/L/XL) — see Sizing Guidelines below.
+   Give a direct size whenever there is a clearly correct choice; only
+   escalate to a human via the strategy comparison table when there
+   genuinely isn't one.
 4. **Identify areas** affected (frontend/backend/api/security/database/performance/testing/docs/infrastructure)
 5. **Apply special flags** if applicable (good-first-issue/breaking-change/needs-discussion)
 6. **Classify issue type** (bug/feature/enhancement/documentation/question)
@@ -304,12 +307,53 @@ Include in metadata:
 - **medium**: Standard features and improvements
 - **low**: Nice-to-have features, minor cosmetic issues
 
-## Complexity Guidelines
+## Sizing Guidelines
 
-- **trivial**: One-line fixes, typos (<1 hour)
-- **simple**: Small, well-defined changes (1-4 hours)
-- **moderate**: Multi-file changes, some complexity (1-3 days)
-- **complex**: Architecture changes, significant effort (3+ days)
+Estimate a T-shirt size for the work, not a complexity label — size is
+the one sizing signal this system uses; a `complexity:` label is still
+applied afterward but is derived automatically from the size you give,
+so do not report complexity separately.
+
+- **XS**: One-line fixes, typos (<1 hour)
+- **S**: Small, well-defined changes (1-4 hours)
+- **M**: Multi-file changes, some complexity (1-3 days)
+- **L**: Architecture changes, significant effort (3-5 days)
+- **XL**: Major architecture changes, cross-cutting effort (5+ days)
+
+### When to escalate instead of guessing
+
+Most issues have one clearly correct size — give it directly in
+`"size"` and stop there. Escalate to a human decision **only** when
+there genuinely isn't a single clear answer:
+
+- The scope is too ambiguous to size at all (materially different
+  interpretations of the request would size very differently), OR
+- There are multiple **viable, meaningfully different** implementation
+  strategies whose sizes differ (e.g. a quick targeted patch vs. a
+  proper refactor of the underlying cause) and picking one is a product
+  or architecture call, not a technical one.
+
+Do NOT escalate just to hedge, and do NOT manufacture alternative
+strategies that aren't genuinely viable — 0 escalations on a repo full
+of clear-cut issues is the expected, good outcome. If you can defend a
+single size, give it directly instead of escalating.
+
+When you do escalate: set `"sizeAmbiguous": true`, omit `"size"`, and
+include a **### Sizing Decision Needed** section in your comment with a
+table:
+
+| Strategy | Pro | Con | Size |
+| -------- | --- | --- | ---- |
+| Short-term patch around the symptom | Fast, low risk | Doesn't address root cause, likely recurs | S |
+| Fix the underlying root cause | Correct, no recurrence | Touches more of the system | M |
+
+List every genuinely distinct strategy (usually 2-3, never invented
+just to fill rows), with a one-line pro/con specific to THIS issue —
+not generic pros/cons. Close the table with a request for a human to
+comment `Approved: <size> — <slack permalink URL>` once they've picked
+one, matching this org's standard sizing-approval format. Also include
+the same table content in metadata as `"sizeOptions"` (see Required
+Output below) so it survives even if the comment is edited.
 
 ## Code Search Requirements
 
@@ -383,7 +427,13 @@ Post a detailed comment using mcp__github__add_issue_comment with:
 3. Technical insights and recommendations
 4. Hidden metadata at the end:
 
-==METADATA=={"priority":"...","complexity":"...","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA==
+Clear-size case:
+==METADATA=={"priority":"...","size":"M","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false,"sizeAmbiguous":false}==METADATA==
+
+Ambiguous-size case (include a `### Sizing Decision Needed` table in the comment body — see Sizing Guidelines):
+==METADATA=={"priority":"...","sizeAmbiguous":true,"sizeOptions":[{"strategy":"...","pro":"...","con":"...","size":"S"},{"strategy":"...","pro":"...","con":"...","size":"M"}],"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA==
+
+Omit `"size"` entirely when `sizeAmbiguous` is true — do not guess a size and also flag it ambiguous, the two are mutually exclusive.
 
 5. Footer with workflow version (after metadata):
 
