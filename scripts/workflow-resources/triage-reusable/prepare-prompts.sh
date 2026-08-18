@@ -364,12 +364,31 @@ not a developer) needs to read. It is not a summary of the technical
 analysis above; it is written for someone who will not read that
 analysis at all.
 
+**POSITION — read this before writing anything else in the comment.**
+This footer is the LAST thing in the comment, full stop. Not "near the
+end" — the literal final section before the hidden metadata. Every
+other section (Triage Analysis, Related Source Code, the technical
+`### Sizing Decision Needed` table, anything else) goes BEFORE it, with
+NO exceptions. Write the rest of the comment first, then write this
+footer last, then stop. If you find yourself wanting to add "Related
+Source Code" or any other section after this footer — don't; go back
+and move it earlier instead. A reader scanning to the bottom of the
+comment for "what do I need to do" must land on this footer, not on
+something else.
+
+**T-shirt size is ALWAYS stated explicitly and literally** — write
+`**T-Shirt Size: M**` (or whichever letter), not just a vague effort
+description. The plain-English effort phrase is in ADDITION to the
+letter, never a replacement for it — a business reader who already
+knows the org's T-shirt-size convention from other tickets should be
+able to see the letter at a glance, not have to infer it from prose.
+
 **Audience and language**: non-technical management. Never use
 implementation trade-off language (architecture, refactor, technical
 debt, root cause vs. patch). Instead frame everything in terms a
 business reader judges spend against: benefit/value, ROI, risk if not
-done, robustness/reliability, urgency. Translate size into a plain
-effort statement, not a label:
+done, robustness/reliability, urgency. Pair the size letter with a
+plain effort statement:
 
 - XS/S → "a small, low-risk change"
 - M → "a moderate effort, typically wrapped up within a few days"
@@ -383,10 +402,11 @@ effort statement, not a label:
 
 ## 📋 Sizing & Approval
 
-This is **[plain effort statement for the size]**. [1-2 sentences:
-why it matters in business terms — the benefit of doing it, or the
-risk/cost of not doing it, drawn from THIS issue's actual content, not
-generic filler.]
+**T-Shirt Size: [SIZE]** — [plain effort statement for the size].
+
+[1-2 sentences: why it matters in business terms — the benefit of
+doing it, or the risk/cost of not doing it, drawn from THIS issue's
+actual content, not generic filler.]
 
 **To approve**: comment `Approved: [SIZE]` on this issue.
 ```
@@ -405,13 +425,13 @@ size trade-off:
 
 There are [N] ways to approach this, at different sizes:
 
-- **[plain option label]** ([plain effort statement]) — [business
-  benefit/ROI/robustness framing, 1 sentence]
-- **[plain option label]** ([plain effort statement]) — [business
-  benefit/ROI/robustness framing, 1 sentence]
+- **T-Shirt Size: [SIZE]** — [plain option label] ([plain effort
+  statement]) — [business benefit/ROI/robustness framing, 1 sentence]
+- **T-Shirt Size: [SIZE]** — [plain option label] ([plain effort
+  statement]) — [business benefit/ROI/robustness framing, 1 sentence]
 
-**Recommendation**: [option], because [business — not technical —
-reason].
+**Recommendation**: [SIZE] — [option label], because [business — not
+technical — reason].
 
 **To approve**: comment `Approved: [SIZE]` on this issue, naming
 whichever option you'd like to proceed with.
@@ -420,7 +440,8 @@ whichever option you'd like to proceed with.
 Keep option labels in the footer plain-language (e.g. "the quick fix"
 / "the complete solution"), not the technical strategy names from the
 table above — a business reader shouldn't need to cross-reference the
-technical table to understand the footer.
+technical table to understand the footer. The size LETTER is the one
+thing that's never paraphrased — always the literal `XS`/`S`/`M`/`L`/`XL`.
 
 ## Code Search Requirements
 
@@ -487,12 +508,15 @@ For ranges: `#L45-L67`
 
 ## Required Output
 
-Post a detailed comment using mcp__github__add_issue_comment with:
+Post a detailed comment using mcp__github__add_issue_comment with the
+sections below **in this exact order** — Related Source Code and the
+technical table are NOT optional trailing sections; they belong before
+the footer, never after it:
 
 1. A "## Triage Analysis" section with your assessment
 2. A "### Related Source Code" section with links to relevant files (REQUIRED - see below)
 3. Technical insights and recommendations (include the `### Sizing Decision Needed` developer-facing table here when `sizeAmbiguous` — see Sizing Guidelines)
-4. The "## 📋 Sizing & Approval" footer (REQUIRED, every issue — see Sizing & Approval Footer above). This is the LAST human-readable section, immediately before the hidden metadata.
+4. The "## 📋 Sizing & Approval" footer (REQUIRED, every issue — see Sizing & Approval Footer above), and NOTHING human-readable after it — it is the literal last thing before the hidden metadata, not just "near the end." If step 2 or 3's content would otherwise land after this footer, reorder so it doesn't.
 5. Hidden metadata at the end — **wrap it in an HTML comment
    (`<!-- ... -->`)**, not bare text. `==METADATA==` markers alone are
    NOT hidden — GitHub renders them as plain visible text, which is
