@@ -349,11 +349,78 @@ table:
 
 List every genuinely distinct strategy (usually 2-3, never invented
 just to fill rows), with a one-line pro/con specific to THIS issue —
-not generic pros/cons. Close the table with a request for a human to
-comment `Approved: <size> — <slack permalink URL>` once they've picked
-one, matching this org's standard sizing-approval format. Also include
-the same table content in metadata as `"sizeOptions"` (see Required
-Output below) so it survives even if the comment is edited.
+not generic pros/cons. This table is for DEVELOPERS — technical
+trade-offs, implementation detail, no simplification needed. It does
+NOT close with an approval instruction; that lives in the separate
+Sizing & Approval footer below, aimed at a different reader. Also
+include the same table content in metadata as `"sizeOptions"` (see
+Required Output below) so it survives even if the comment is edited.
+
+## Sizing & Approval Footer (REQUIRED, every issue)
+
+Every triaged issue ends with a **separate**, consistently-formatted
+footer — the ONLY part of your comment the approver (an admin/owner,
+not a developer) needs to read. It is not a summary of the technical
+analysis above; it is written for someone who will not read that
+analysis at all.
+
+**Audience and language**: non-technical management. Never use
+implementation trade-off language (architecture, refactor, technical
+debt, root cause vs. patch). Instead frame everything in terms a
+business reader judges spend against: benefit/value, ROI, risk if not
+done, robustness/reliability, urgency. Translate size into a plain
+effort statement, not a label:
+
+- XS/S → "a small, low-risk change"
+- M → "a moderate effort, typically wrapped up within a few days"
+- L/XL → "a significant undertaking needing dedicated planning and
+  multiple days of focused work"
+
+**Clear-size case** — one size, no options:
+
+```
+---
+
+## 📋 Sizing & Approval
+
+This is **[plain effort statement for the size]**. [1-2 sentences:
+why it matters in business terms — the benefit of doing it, or the
+risk/cost of not doing it, drawn from THIS issue's actual content, not
+generic filler.]
+
+**To approve**: comment `Approved: [SIZE]` on this issue.
+```
+
+**Ambiguous case** — reuse the same underlying options as the
+technical table above, but re-express EACH one for a business reader
+(benefit/ROI/robustness, not technical pro/con), and give a
+recommendation — you have the full technical picture, so don't punt a
+judgement call you're equipped to make just because it also involves a
+size trade-off:
+
+```
+---
+
+## 📋 Sizing & Approval
+
+There are [N] ways to approach this, at different sizes:
+
+- **[plain option label]** ([plain effort statement]) — [business
+  benefit/ROI/robustness framing, 1 sentence]
+- **[plain option label]** ([plain effort statement]) — [business
+  benefit/ROI/robustness framing, 1 sentence]
+
+**Recommendation**: [option], because [business — not technical —
+reason].
+
+**To approve**: comment `Approved: [SIZE]` on this issue, naming
+whichever option you'd like to proceed with.
+```
+
+Keep option labels in the footer plain-language (e.g. "the quick fix"
+/ "the complete solution"), not the technical strategy names from the
+table above — a business reader shouldn't need to cross-reference the
+technical table to understand the footer.
 
 ## Code Search Requirements
 
@@ -424,18 +491,24 @@ Post a detailed comment using mcp__github__add_issue_comment with:
 
 1. A "## Triage Analysis" section with your assessment
 2. A "### Related Source Code" section with links to relevant files (REQUIRED - see below)
-3. Technical insights and recommendations
-4. Hidden metadata at the end:
+3. Technical insights and recommendations (include the `### Sizing Decision Needed` developer-facing table here when `sizeAmbiguous` — see Sizing Guidelines)
+4. The "## 📋 Sizing & Approval" footer (REQUIRED, every issue — see Sizing & Approval Footer above). This is the LAST human-readable section, immediately before the hidden metadata.
+5. Hidden metadata at the end — **wrap it in an HTML comment
+   (`<!-- ... -->`)**, not bare text. `==METADATA==` markers alone are
+   NOT hidden — GitHub renders them as plain visible text, which is
+   exactly the ugly raw-looking blob this instruction says to avoid.
+   An HTML comment is what actually makes it invisible in the rendered
+   comment while staying present in the raw body for parsing:
 
 Clear-size case:
-==METADATA=={"priority":"...","size":"M","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false,"sizeAmbiguous":false}==METADATA==
+<!-- ==METADATA=={"priority":"...","size":"M","areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false,"sizeAmbiguous":false}==METADATA== -->
 
 Ambiguous-size case (include a `### Sizing Decision Needed` table in the comment body — see Sizing Guidelines):
-==METADATA=={"priority":"...","sizeAmbiguous":true,"sizeOptions":[{"strategy":"...","pro":"...","con":"...","size":"S"},{"strategy":"...","pro":"...","con":"...","size":"M"}],"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA==
+<!-- ==METADATA=={"priority":"...","sizeAmbiguous":true,"sizeOptions":[{"strategy":"...","pro":"...","con":"...","size":"S"},{"strategy":"...","pro":"...","con":"...","size":"M"}],"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA== -->
 
 Omit `"size"` entirely when `sizeAmbiguous` is true — do not guess a size and also flag it ambiguous, the two are mutually exclusive.
 
-5. Footer with workflow version (after metadata):
+6. Footer with workflow version (after metadata):
 
 ---
 *Analyzed by claude-triage vWORKFLOW_VERSION*
