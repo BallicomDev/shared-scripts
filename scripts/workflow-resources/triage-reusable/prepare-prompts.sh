@@ -355,6 +355,21 @@ NOT close with an approval instruction; that lives in the separate
 Sizing & Approval footer below, aimed at a different reader. Also
 include the same table content in metadata as `"sizeOptions"` (see
 Required Output below) so it survives even if the comment is edited.
+EOF
+
+# Append project-specific sizing rules if present (safe - no variable substitution)
+if [ -f ".github/prompt_extra/size_estimate_prompt_extra.md" ]; then
+  {
+    echo ""
+    echo "### Project-Specific Sizing Rules"
+    echo ""
+    cat .github/prompt_extra/size_estimate_prompt_extra.md
+    echo ""
+  } >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
+fi
+
+# Continue main triage prompt
+cat >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" << 'EOF'
 
 ## Sizing & Approval Footer (REQUIRED, every issue)
 
