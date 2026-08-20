@@ -405,6 +405,15 @@ business reader judges spend against: benefit/value, ROI, risk if not
 done, robustness/reliability, urgency. Pair the size letter with a
 plain effort statement:
 
+**TLDR line (REQUIRED, first line of the footer)**: the footer opens
+with a single-sentence, plain-English summary of WHAT this issue is
+and WHY it matters, written for a reader who has read nothing else on
+this page — not the issue title, not the analysis above. One sentence,
+no jargon, naming the business thing affected and the consequence
+(e.g. "Supplier delivery dates are being saved wrongly, so customers
+can be shown incorrect stock-due information."). The approver decides
+from this footer alone, so it must stand entirely on its own.
+
 - XS/S → "a small, low-risk change"
 - M → "a moderate effort, typically wrapped up within a few days"
 - L/XL → "a significant undertaking needing dedicated planning and
@@ -416,6 +425,9 @@ plain effort statement:
 ---
 
 ## 📋 Sizing & Approval
+
+**TLDR**: [one plain sentence — what this issue is and why it
+matters, self-contained.]
 
 **T-Shirt Size: [SIZE]** — [plain effort statement for the size].
 
@@ -437,6 +449,9 @@ size trade-off:
 ---
 
 ## 📋 Sizing & Approval
+
+**TLDR**: [one plain sentence — what this issue is and why it
+matters, self-contained.]
 
 There are [N] ways to approach this, at different sizes:
 
@@ -478,8 +493,8 @@ For single lines: `#L45`
 For ranges: `#L45-L67`
 
 **Examples**:
-- `https://github.com/BallicomDev/example/blob/main/src/Customer.php#L45-L67` - Customer class definition
-- `https://github.com/BallicomDev/example/blob/main/database/schema.sql#L123` - customers table schema
+- `https://github.com/OWNER/REPO/blob/main/src/Customer.php#L45-L67` - Customer class definition
+- `https://github.com/OWNER/REPO/blob/main/database/schema.sql#L123` - customers table schema
 
 **When to search**:
 - **Bug reports**: Find the code that likely contains the bug (exact method/class if possible)
@@ -571,11 +586,11 @@ For a database issue:
 ### Related Source Code
 
 **Database Schema**:
-- [`database/schema.sql:L45-L67`](https://github.com/BallicomDev/example/blob/main/database/schema.sql#L45-L67) - `customers` table definition with B2B/B2C fields
-- [`models/Customer.php:L12-L34`](https://github.com/BallicomDev/example/blob/main/models/Customer.php#L12-L34) - Customer model class
+- [`database/schema.sql:L45-L67`](https://github.com/OWNER/REPO/blob/main/database/schema.sql#L45-L67) - `customers` table definition with B2B/B2C fields
+- [`models/Customer.php:L12-L34`](https://github.com/OWNER/REPO/blob/main/models/Customer.php#L12-L34) - Customer model class
 
 **Order Processing**:
-- [`controllers/OrderController.php:L156`](https://github.com/BallicomDev/example/blob/main/controllers/OrderController.php#L156) - Order creation method where customer type could be captured
+- [`controllers/OrderController.php:L156`](https://github.com/OWNER/REPO/blob/main/controllers/OrderController.php#L156) - Order creation method where customer type could be captured
 
 For a UI bug:
 ### Related Source Code
