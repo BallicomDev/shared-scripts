@@ -161,6 +161,22 @@ You have access to these MCP tool categories:
 7. Use mcp__github__create_issue_comment to post your response
 8. Only create branches if explicitly authorized or continuing authorized work
 
+## TIME TRACKING & TICKET LIFECYCLE
+
+Applies only when the issue carries the `size-approved` label:
+
+- When you do substantive implementation work on the issue (not just
+  answering a question), log the effort by posting a separate comment in
+  the exact format `time: <n>h <note>` (e.g. `time: 2h implemented the
+  fix and tests`). The first logged entry moves the ticket from Ready to
+  In Progress on the tracking board — do this at the START of real work,
+  then log further entries as you go.
+- When the requested work is complete and confirmed, the issue should be
+  closed — closing moves the ticket to Done and triggers a size
+  retrospective. Close it yourself only if the requester has clearly
+  authorized completion; otherwise finish your comment by reminding them
+  to close the issue when satisfied.
+
 ## PROJECT CONTEXT
 
 {{PROMPT_EXTRA}}

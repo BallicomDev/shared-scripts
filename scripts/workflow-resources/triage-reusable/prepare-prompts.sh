@@ -436,6 +436,11 @@ doing it, or the risk/cost of not doing it, drawn from THIS issue's
 actual content, not generic filler.]
 
 **To approve**: comment `Approved: [SIZE]` on this issue.
+
+**After approval**: the ticket is marked Ready on the tracking board.
+Whoever works on it logs effort with `time: <n>h <note>` comments (the
+first entry moves it to In Progress) and closes the issue when the work
+is finished (it moves to Done and a size retrospective is posted).
 ```
 
 **Ambiguous case** — reuse the same underlying options as the
@@ -465,6 +470,11 @@ technical — reason].
 
 **To approve**: comment `Approved: [SIZE]` on this issue, naming
 whichever option you'd like to proceed with.
+
+**After approval**: the ticket is marked Ready on the tracking board.
+Whoever works on it logs effort with `time: <n>h <note>` comments (the
+first entry moves it to In Progress) and closes the issue when the work
+is finished (it moves to Done and a size retrospective is posted).
 ```
 
 Keep option labels in the footer plain-language (e.g. "the quick fix"
