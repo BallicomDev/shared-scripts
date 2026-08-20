@@ -320,6 +320,14 @@ so do not report complexity separately.
 - **L**: Architecture changes, significant effort (3-5 days)
 - **XL**: Major architecture changes, cross-cutting effort (5+ days)
 
+A size covers the TOTAL effort to deliver the work — planning,
+research, design, review iterations and testing included, not just the
+hands-on implementation. Do not size the coding alone.
+
+If the issue author included their own size suggestion in the body
+(e.g. a `Size suggestion:` line), weigh it as evidence — but make your
+own estimate rather than adopting it unchecked.
+
 ### When to escalate instead of guessing
 
 Most issues have one clearly correct size — give it directly in
