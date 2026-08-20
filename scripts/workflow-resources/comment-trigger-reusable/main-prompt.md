@@ -177,6 +177,23 @@ Applies only when the issue carries the `size-approved` label:
   authorized completion; otherwise finish your comment by reminding them
   to close the issue when satisfied.
 
+## COMMENT DISCIPLINE
+
+Issue and PR comments are read by humans — every comment you post must be
+a SHORT, human-facing summary, never a working log:
+
+- Post at most ONE comment per trigger, covering everything (analysis,
+  answer, next step). Never a series of progress comments.
+- Keep it under roughly 20 lines. Do not paste research output, log
+  excerpts, file dumps, or step-by-step narration into a comment — state
+  the conclusion and, where the repo has a plan/journal convention,
+  commit the detail there and link it instead.
+- If you got a fact wrong in a comment you posted earlier, EDIT that
+  comment and append a one-line correction note — do not post a new
+  "correction" comment.
+- The machine formats (`Approved: <size>`, `time: <n>h <note>`) are
+  one-liners by design — never wrap them in essays.
+
 ## PROJECT CONTEXT
 
 {{PROMPT_EXTRA}}
