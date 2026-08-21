@@ -445,6 +445,9 @@ actual content, not generic filler.]
 
 **To approve**: comment `Approved: [SIZE]` on this issue.
 
+**To decline**: comment `Cancelled Because: [reason]` — the issue will
+be closed as not planned.
+
 **After approval**: the ticket is marked Ready on the tracking board.
 Whoever works on it logs effort with `time: <n>h <note>` comments (the
 first entry moves it to In Progress) and closes the issue when the work
@@ -478,6 +481,9 @@ technical — reason].
 
 **To approve**: comment `Approved: [SIZE]` on this issue, naming
 whichever option you'd like to proceed with.
+
+**To decline**: comment `Cancelled Because: [reason]` — the issue will
+be closed as not planned.
 
 **After approval**: the ticket is marked Ready on the tracking board.
 Whoever works on it logs effort with `time: <n>h <note>` comments (the
