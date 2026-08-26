@@ -207,7 +207,7 @@ Provide a comprehensive triage analysis. You must:
 
 1. **Analyze the issue** thoroughly
 2. **Determine priority** (critical/high/medium/low)
-3. **Estimate T-shirt size** (XS/S/M/L/XL) — see Sizing Guidelines below.
+3. **Estimate T-shirt size** (XS/S/M/L/XL/XXL) — see Sizing Guidelines below.
    Give a direct size whenever there is a clearly correct choice; only
    escalate to a human via the strategy comparison table when there
    genuinely isn't one.
@@ -314,11 +314,12 @@ the one sizing signal this system uses; a `complexity:` label is still
 applied afterward but is derived automatically from the size you give,
 so do not report complexity separately.
 
-- **XS**: One-line fixes, typos (<1 hour)
+- **XS**: One-line fixes, typos (up to 1 hour)
 - **S**: Small, well-defined changes (1-4 hours)
-- **M**: Multi-file changes, some complexity (1-3 days)
-- **L**: Architecture changes, significant effort (3-5 days)
-- **XL**: Major architecture changes, cross-cutting effort (5+ days)
+- **M**: Multi-file changes, some complexity (up to 1 day / 8 hours)
+- **L**: Larger well-scoped changes (1-2 days)
+- **XL**: Architecture changes, significant effort (2-4 days)
+- **XXL**: Major cross-cutting effort (more than 4 days) — usually a sign the work should be split into smaller pieces first
 
 A size covers the TOTAL effort to deliver the work — planning,
 research, design, review iterations and testing included, not just the
@@ -423,9 +424,11 @@ can be shown incorrect stock-due information."). The approver decides
 from this footer alone, so it must stand entirely on its own.
 
 - XS/S → "a small, low-risk change"
-- M → "a moderate effort, typically wrapped up within a few days"
+- M → "a moderate effort, typically wrapped up within a day"
 - L/XL → "a significant undertaking needing dedicated planning and
   multiple days of focused work"
+- XXL → "a major effort that should likely be broken into smaller
+  pieces before starting"
 
 **Clear-size case** — one size, no options:
 
@@ -495,7 +498,7 @@ Keep option labels in the footer plain-language (e.g. "the quick fix"
 / "the complete solution"), not the technical strategy names from the
 table above — a business reader shouldn't need to cross-reference the
 technical table to understand the footer. The size LETTER is the one
-thing that's never paraphrased — always the literal `XS`/`S`/`M`/`L`/`XL`.
+thing that's never paraphrased — always the literal `XS`/`S`/`M`/`L`/`XL`/`XXL`.
 
 ## Code Search Requirements
 
