@@ -314,12 +314,12 @@ the one sizing signal this system uses; a `complexity:` label is still
 applied afterward but is derived automatically from the size you give,
 so do not report complexity separately.
 
-- **XS**: One-line fixes, typos (up to 1 hour)
-- **S**: Small, well-defined changes (1-4 hours)
-- **M**: Multi-file changes, some complexity (up to 1 day / 8 hours)
-- **L**: Larger well-scoped changes (1-2 days)
-- **XL**: Architecture changes, significant effort (2-4 days)
-- **XXL**: Major cross-cutting effort (more than 4 days) — usually a sign the work should be split into smaller pieces first
+EOF
+
+# The size-to-effort definition is inlined from its single source file
+# (../shared/size-bands.md) rather than restated here; `-` resumes the
+# heredoc after it in the same append.
+cat "$(dirname "${BASH_SOURCE[0]}")/../shared/size-bands.md" - >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" << 'EOF'
 
 A size covers the TOTAL effort to deliver the work — planning,
 research, design, review iterations and testing included, not just the
@@ -424,9 +424,9 @@ can be shown incorrect stock-due information."). The approver decides
 from this footer alone, so it must stand entirely on its own.
 
 - XS/S → "a small, low-risk change"
-- M → "a moderate effort, typically wrapped up within a day"
+- M → "a moderate, self-contained effort"
 - L/XL → "a significant undertaking needing dedicated planning and
-  multiple days of focused work"
+  sustained focused work"
 - XXL → "a major effort that should likely be broken into smaller
   pieces before starting"
 
