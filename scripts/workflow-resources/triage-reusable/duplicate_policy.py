@@ -9,11 +9,12 @@ close_duplicates.py (event-time HIGH close) and the duplicate-sweep scripts.
 Policy (LOCKED DESIGN, PROPOSAL.md):
 - Only same-repo, ``confidence: HIGH`` + ``type: duplicate`` findings are
   actionable at event time; ``related`` never closes anything.
-- Survivor rule splits on provenance: an error-monitor pair keeps the
-  OLDEST issue (canonical occurrence history); a human-filed pair keeps the
-  NEWEST (current triage/sizing) unless the older issue carries work
-  evidence (size-approved label, ``time:`` entries, commit references), in
-  which case the decision inverts and the newer issue closes.
+- Survivor rule splits on provenance: an automated-monitor pair keeps the
+  OLDEST issue (canonical occurrence history), inverting only when that
+  preferred close target carries work evidence (approved label, ``time:``
+  entries, commit references). A human-filed pair keeps the NEWEST; if
+  the older issue carries work evidence the close is vetoed entirely — a
+  human-filed report is never closed by inversion.
 - An issue with work evidence is never closed; if both sides carry
   evidence, no action is taken at all.
 """
@@ -161,6 +162,8 @@ def decide_survivor(issue_a: Dict[str, Any], issue_b: Dict[str, Any]) -> Optiona
 
     if preferred_close.get("has_work_evidence"):
         if other.get("has_work_evidence"):
+            return None
+        if not both_error_monitor:
             return None
         preferred_close, other = other, preferred_close
         rule += " (inverted: preferred close target carries work evidence)"
