@@ -512,9 +512,11 @@ actual content, not generic filler.]
 be closed as not planned.
 
 **After approval**: the ticket is marked Ready on the tracking board.
-Whoever works on it logs effort with `time: <n>h <note>` comments (the
-first entry moves it to In Progress) and closes the issue when the work
-is finished (it moves to Done and a size retrospective is posted).
+Whoever works on it logs effort with `time: <n>h <note>` comments —
+measured clock time actually spent, in 0.25h steps, never the approved
+size; the cumulative total must never exceed wall-clock time since
+approval. The first entry moves it to In Progress; closing the finished
+issue moves it to Done and posts a size retrospective.
 ```
 
 **Ambiguous case** — reuse the same underlying options as the
@@ -549,9 +551,11 @@ whichever option you'd like to proceed with.
 be closed as not planned.
 
 **After approval**: the ticket is marked Ready on the tracking board.
-Whoever works on it logs effort with `time: <n>h <note>` comments (the
-first entry moves it to In Progress) and closes the issue when the work
-is finished (it moves to Done and a size retrospective is posted).
+Whoever works on it logs effort with `time: <n>h <note>` comments —
+measured clock time actually spent, in 0.25h steps, never the approved
+size; the cumulative total must never exceed wall-clock time since
+approval. The first entry moves it to In Progress; closing the finished
+issue moves it to Done and posts a size retrospective.
 ```
 
 Keep option labels in the footer plain-language (e.g. "the quick fix"
