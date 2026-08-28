@@ -368,6 +368,14 @@ A size covers the TOTAL effort to deliver the work — planning,
 research, design, review iterations and testing included, not just the
 hands-on implementation. Do not size the coding alone.
 
+**Effort is time, never people.** Assume all work — including work
+spanning several repositories — is delivered by a single developer
+working with automated agents. There are no teams. Never reason about
+effort in terms of teams, headcount, staffing or parallel developer
+capacity; work that touches many repositories is cross-repo scope for
+that same one developer, and its size is still just hours of focused
+work.
+
 If the issue author included their own size suggestion in the body
 (e.g. a `Size suggestion:` line), weigh it as evidence — but make your
 own estimate rather than adopting it unchecked.
@@ -475,6 +483,12 @@ from this footer alone, so it must stand entirely on its own.
   sustained focused work"
 - XXL → "a major effort that should likely be broken into smaller
   pieces before starting"
+
+Never describe effort in terms of people or teams — no "multiple
+teams", "a team of developers", "several engineers", or any
+staffing/headcount framing, anywhere in the comment. Effort is time
+spent by one developer: work spanning several repositories is "spread
+across several repositories", full stop.
 
 **Clear-size case** — one size, no options:
 
