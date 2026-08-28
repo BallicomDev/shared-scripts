@@ -350,6 +350,37 @@ uncertain skip is worse than an unnecessary size estimate).
 parent lacks `size-approved`): size normally per the rest of this
 section — a child of an UNapproved parent is sized like any issue.
 
+### Micro fast-lane declarations — check SECOND, before sizing
+
+If the issue body contains a `Size suggestion:` line whose value is
+`XS` and whose reasoning includes both the words `micro` and
+`fast-lane`, the author is declaring the work is at most ~15 minutes
+of focused effort, filed for the audit trail and worked immediately
+under a standing approval — often already closed before you run (that
+is the expected case, not an error; apply the same rules either way).
+Your job is to judge the CLAIM, not to gate the work:
+
+**If the described scope is plausibly that small** (a small doc or
+text change, a one-line config tweak, a single self-contained edit —
+deliverable end to end in about 15 minutes):
+
+- Do NOT estimate a size and do NOT include the "## 📋 Sizing &
+  Approval" footer anywhere in the comment — the approval ask does
+  not apply to this issue.
+- End the comment body (before the hidden metadata) with one line:
+  `**Micro fast-lane** — not sized; audit-trail issue worked under the standing micro approval.`
+- In the metadata block set `"microFastLane": true` and omit both
+  `"size"` and `"sizeAmbiguous"`.
+
+**If the claim does NOT hold** — the described scope reads as hours
+of work (several files or systems, testing cycles, coordination), it
+touches production systems or deployments, or it is one slice of a
+visibly larger job spread across multiple micro declarations — size
+it normally per the rest of this section AND open the footer's TLDR
+with one sentence flagging that the micro declaration does not hold
+for scope of this size. Do not set `"microFastLane"` in that case:
+the normal approval ask stands.
+
 ### Sizing (all other issues)
 
 Estimate a T-shirt size for the work, not a complexity label — size is
@@ -431,11 +462,13 @@ fi
 # Continue main triage prompt
 cat >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" << 'EOF'
 
-## Sizing & Approval Footer (REQUIRED — every issue EXCEPT a carried-approval sub-issue)
+## Sizing & Approval Footer (REQUIRED — every issue EXCEPT carried-approval and confirmed micro fast-lane)
 
-**Exception**: a sub-issue that carries its parent's approval (see the
-carried-approval check in Sizing Guidelines) gets NO footer at all —
-its comment ends with the one-line carried-approval statement instead.
+**Exceptions**: a sub-issue that carries its parent's approval, and an
+issue whose micro fast-lane declaration you judged plausible (see the
+two checks in Sizing Guidelines), get NO footer at all — their
+comments end with the one-line carried-approval or micro-fast-lane
+statement instead.
 Every other triaged issue ends with a **separate**, consistently-formatted
 footer — the ONLY part of your comment the approver (an admin/owner,
 not a developer) needs to read. It is not a summary of the technical
@@ -637,7 +670,13 @@ the footer, never after it:
 1. A "## Triage Analysis" section with your assessment
 2. A "### Related Source Code" section with links to relevant files (REQUIRED - see below)
 3. Technical insights and recommendations (include the `### Sizing Decision Needed` developer-facing table here when `sizeAmbiguous` — see Sizing Guidelines)
-4. The "## 📋 Sizing & Approval" footer (REQUIRED for every issue EXCEPT a carried-approval sub-issue, which gets the one-line carried-approval statement here instead — see Sizing Guidelines), and NOTHING human-readable after it — it is the literal last thing before the hidden metadata, not just "near the end." If step 2 or 3's content would otherwise land after this footer, reorder so it doesn't.
+4. The "## 📋 Sizing & Approval" footer (REQUIRED for every issue
+   EXCEPT a carried-approval sub-issue or a confirmed micro fast-lane
+   issue, which get the one-line carried-approval or micro-fast-lane
+   statement here instead — see Sizing Guidelines), and NOTHING
+   human-readable after it — it is the literal last thing before the
+   hidden metadata, not just "near the end." If step 2 or 3's content
+   would otherwise land after this footer, reorder so it doesn't.
 5. Hidden metadata at the end — **wrap it in an HTML comment
    (`<!-- ... -->`)**, not bare text. `==METADATA==` markers alone are
    NOT hidden — GitHub renders them as plain visible text, which is
@@ -654,7 +693,14 @@ Ambiguous-size case (include a `### Sizing Decision Needed` table in the comment
 Carried-approval sub-issue case (no footer — see Sizing Guidelines):
 <!-- ==METADATA=={"priority":"...","carriedApproval":true,"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[],"needsInfo":false}==METADATA== -->
 
-Omit `"size"` entirely when `sizeAmbiguous` is true — do not guess a size and also flag it ambiguous, the two are mutually exclusive. When `carriedApproval` is true, omit BOTH `"size"` and `"sizeAmbiguous"`.
+Confirmed micro fast-lane case (no footer — see Sizing Guidelines):
+<!-- ==METADATA=={"priority":"...","microFastLane":true,"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[],"needsInfo":false}==METADATA== -->
+
+Omit `"size"` entirely when `sizeAmbiguous` is true — do not guess a
+size and also flag it ambiguous, the two are mutually exclusive. When
+`carriedApproval` or `microFastLane` is true, omit BOTH `"size"` and
+`"sizeAmbiguous"` (the two flags are themselves mutually exclusive —
+a sub-issue of an approved parent is carried approval, not micro).
 
 6. Footer with workflow version (after metadata):
 
