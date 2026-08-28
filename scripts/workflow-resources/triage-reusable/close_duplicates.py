@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Event-time HIGH-confidence duplicate auto-close.
 
-Runs as a post-analysis step in triage-reusable.yml, strictly AFTER the
-triage analysis comment is confirmed posted (see ai-tools#574 on why
-ordering matters): it re-fetches the issue's comments itself, selects the
+Runs as a post-analysis step, strictly AFTER the analysis comment is
+confirmed posted (ordering matters: the metadata this reads comes from
+that comment): it re-fetches the issue's comments itself, selects the
 NEWEST non-superseded triage comment, parses its ==METADATA== block and
 acts only on same-repo ``confidence: HIGH`` + ``type: duplicate`` findings.
 

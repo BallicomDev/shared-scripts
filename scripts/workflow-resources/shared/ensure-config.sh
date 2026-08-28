@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source retry wrapper
+# Source retry wrapper (checked out at this path at runtime)
+# shellcheck source-path=SCRIPTDIR/../../..
+# shellcheck source=scripts/github-utils/gh-retry.sh
 source .ai-tools-resources/scripts/github-utils/gh-retry.sh
 
 # Ensure config file exists, create from baseline if needed
@@ -9,7 +11,7 @@ source .ai-tools-resources/scripts/github-utils/gh-retry.sh
 # Supports both YAML and JSON formats (YAML is recommended)
 
 CONFIG_FILE="${CONFIG_FILE:-.github/ai-tools-config.yml}"
-BASELINE_REPO="${BASELINE_REPO:-BallicomDev/ai-tools}"
+BASELINE_REPO="${BASELINE_REPO:?BASELINE_REPO must be set}"
 BASELINE_FILE=".github/ai-tools-config.yml"
 
 # Check if config already exists
