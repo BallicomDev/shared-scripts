@@ -709,6 +709,10 @@ size and also flag it ambiguous, the two are mutually exclusive. When
 `"sizeAmbiguous"` (the two flags are themselves mutually exclusive —
 a sub-issue of an approved parent is carried approval, not micro).
 
+The JSON must be wrapped by `==METADATA==` on BOTH sides, exactly as
+in the examples above — the closing marker before `-->` is required;
+without it the metadata cannot be parsed and no labels get applied.
+
 6. Footer with workflow version (after metadata):
 
 ---
