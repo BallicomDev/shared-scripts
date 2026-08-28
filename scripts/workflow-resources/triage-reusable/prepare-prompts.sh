@@ -350,15 +350,17 @@ uncertain skip is worse than an unnecessary size estimate).
 parent lacks `size-approved`): size normally per the rest of this
 section — a child of an UNapproved parent is sized like any issue.
 
-### Micro fast-lane declarations — check SECOND, before sizing
+### MICRO declarations (fast-lane) — check SECOND, before sizing
 
-If the issue body contains a `Size suggestion:` line whose value is
-`XS` and whose reasoning includes both the words `micro` and
-`fast-lane`, the author is declaring the work is at most ~15 minutes
-of focused effort, filed for the audit trail and worked immediately
-under a standing approval — often already closed before you run (that
-is the expected case, not an error; apply the same rules either way).
-Your job is to judge the CLAIM, not to gate the work:
+`MICRO` is the smallest size tier — below XS, at most ~15 minutes
+(0.25h) of focused effort. It is ONLY ever declared by the issue
+author, never assigned by you: if the issue body contains a
+`Size suggestion:` line whose value is `MICRO`, the author is
+declaring the work micro, filed for the audit trail and worked
+immediately under a standing approval — often already closed before
+you run (that is the expected case, not an error; apply the same
+rules either way). Your job is to judge the CLAIM, not to gate the
+work:
 
 **If the described scope is plausibly that small** (a small doc or
 text change, a one-line config tweak, a single self-contained edit —
@@ -375,11 +377,12 @@ deliverable end to end in about 15 minutes):
 **If the claim does NOT hold** — the described scope reads as hours
 of work (several files or systems, testing cycles, coordination), it
 touches production systems or deployments, or it is one slice of a
-visibly larger job spread across multiple micro declarations — size
-it normally per the rest of this section AND open the footer's TLDR
-with one sentence flagging that the micro declaration does not hold
-for scope of this size. Do not set `"microFastLane"` in that case:
-the normal approval ask stands.
+visibly larger job spread across multiple MICRO declarations — size
+it normally per the rest of this section (XS at the smallest — never
+output MICRO as your own estimate) AND open the footer's TLDR with
+one sentence flagging that the MICRO declaration does not hold for
+scope of this size. Do not set `"microFastLane"` in that case: the
+normal approval ask stands.
 
 ### Sizing (all other issues)
 
@@ -398,6 +401,10 @@ cat "$(dirname "${BASH_SOURCE[0]}")/../shared/size-bands.md" - >> "${RUNNER_TEMP
 A size covers the TOTAL effort to deliver the work — planning,
 research, design, review iterations and testing included, not just the
 hands-on implementation. Do not size the coding alone.
+
+Your own estimates use XS through XXL only — MICRO exists solely for
+author declarations, handled by the MICRO check above, and must never
+appear as your own estimate or in the metadata `"size"` field.
 
 **Effort is time, never people.** Assume all work — including work
 spanning several repositories — is delivered by a single developer

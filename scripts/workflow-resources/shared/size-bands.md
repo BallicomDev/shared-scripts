@@ -1,15 +1,18 @@
 <!-- SIZE_BANDS_TABLE_START -->
 
-| Size | Actual effort band | Allocated-hours default |
-| ---- | ------------------ | ----------------------- |
-| XS   | up to 1h           | 1                       |
-| S    | >1h to 3h          | 3                       |
-| M    | >3h to 6h          | 6                       |
-| L    | >6h to 12h         | 12                      |
-| XL   | >12h to 24h        | 24                      |
-| XXL  | more than 24h      | 48                      |
+| Size  | Actual effort band | Allocated-hours default |
+| ----- | ------------------ | ----------------------- |
+| MICRO | up to 0.25h        | 0.25                    |
+| XS    | >0.25h to 1h       | 1                       |
+| S     | >1h to 3h          | 3                       |
+| M     | >3h to 6h          | 6                       |
+| L     | >6h to 12h         | 12                      |
+| XL    | >12h to 24h        | 24                      |
+| XXL   | more than 24h      | 48                      |
 
 <!-- SIZE_BANDS_TABLE_END -->
 
 An estimate in the largest band usually means the work should be split
-into smaller pieces before starting.
+into smaller pieces before starting. The smallest band is declared by
+an issue's author, never assigned by an estimator — the smallest
+estimator-assigned size is XS.
