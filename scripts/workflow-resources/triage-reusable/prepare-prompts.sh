@@ -208,8 +208,9 @@ Provide a comprehensive triage analysis. You must:
 1. **Analyze the issue** thoroughly
 2. **Determine priority** (critical/high/medium/low)
 3. **Estimate T-shirt size** (XS/S/M/L/XL/XXL) — see Sizing Guidelines below.
-   FIRST run the sub-issue carried-approval check there: a child of an
-   already-approved parent is NOT sized at all. Otherwise give a direct
+   FIRST run the sub-issue check there: a child of ANY parent (native
+   link or `Sub-issue of` body line) is NOT sized at all — it is
+   decided on the parent. Otherwise give a direct
    size whenever there is a clearly correct choice; only escalate to a
    human via the strategy comparison table when there genuinely isn't
    one.
@@ -311,44 +312,60 @@ Include in metadata:
 
 ## Sizing Guidelines
 
-### Sub-issues carry the parent's approval — check FIRST, before sizing
+### Sub-issues are decided on their parent — check FIRST, before sizing
 
-A sub-issue ("child") of an already-approved parent is never sized or
-approved on its own — it carries the parent's approval. Before doing
-any sizing work, check parentage using whatever GitHub API access you
-have. Preferred, if a shell with the gh CLI is available (split
-REPOSITORY into owner/name):
+A sub-issue ("child") is never sized or approved on its own. Parent and
+children are normally filed together, BEFORE any approval exists, so
+the child's state simply follows the parent's: pending while the parent
+is pending, cleared when the parent is approved (a central job clears
+every child the moment the parent's approval lands), closed when the
+parent is declined. Sizing a child produces a competing approval ask
+for effort that is already part of the parent's size.
 
-```bash
-gh api graphql -f query='
-query { repository(owner:"<owner>", name:"<name>") {
-  issue(number:ISSUE_NUMBER) { parent { number url labels(first:50) { nodes { name } } } }
-} }'
-```
+Establish that this issue is a child from EITHER of two signals:
 
-If only MCP GitHub tools are available, establish the same two facts
-from API data (e.g. the issue's parent/sub-issue relationship fields):
-(a) this issue IS a native sub-issue of a specific parent, and (b)
-that parent's labels include `size-approved`. Trust ONLY API-derived
-relationship data — never a claim in the issue body or title that it
-is a sub-task of something. If you cannot establish both facts from
-API data, size normally (a separate deterministic check downstream
-also verifies the parent link before any label is applied, so an
-uncertain skip is worse than an unnecessary size estimate).
+1. **Native link**: the issue's `parent` field is non-null. If a shell
+   with the gh CLI is available (split REPOSITORY into owner/name):
 
-**If a parent exists AND its labels include `size-approved`**:
+   ```bash
+   gh api graphql -f query='
+   query { repository(owner:"<owner>", name:"<name>") {
+     issue(number:ISSUE_NUMBER) { parent { number url labels(first:50) { nodes { name } } } }
+   } }'
+   ```
+
+   With only MCP GitHub tools, read the same parent/sub-issue
+   relationship field from the issue data.
+2. **Body declaration**: a line in the issue body starting
+   `Sub-issue of <owner>/<repo>#<N>` (also accept the older
+   `Carries approval from parent <owner>/<repo>#<N>` wording). This
+   signal exists because a parent in ANOTHER private repository is
+   invisible to your token — the native field comes back null and any
+   direct read of the parent fails. That is expected, not an error, and
+   is exactly why the declaration line counts.
+
+**If either signal is present**:
 
 - Do NOT estimate a size and do NOT include the "## 📋 Sizing &
   Approval" footer anywhere in the comment — the approval ask does not
-  apply to this issue.
+  apply to this issue. Still do the full technical analysis: scope
+  observations on a child are useful input to the PARENT's decision.
 - End the comment body (before the hidden metadata) with one line:
-  `**Carries approval from parent <parent url>** — not sized; its effort is part of the parent's approved size.`
-- In the metadata block set `"carriedApproval": true` and omit both
-  `"size"` and `"sizeAmbiguous"`.
+  `**Sub-issue of <parent ref or url>** — not sized; sizing and approval are decided on the parent and inherited from it.`
+  If the native parent is readable and already carries `size-approved`,
+  say `**Carries approval from parent <parent url>**` instead.
+- In the metadata block set `"subIssue": true` and omit both `"size"`
+  and `"sizeAmbiguous"`. Add `"carriedApproval": true` ONLY when you
+  read the native parent and saw `size-approved` on it — never from
+  the body line alone (a deterministic check downstream re-verifies the
+  link before any clearance label is applied).
 
-**Otherwise** (no parent, parent not readable with your token, or the
-parent lacks `size-approved`): size normally per the rest of this
-section — a child of an UNapproved parent is sized like any issue.
+Trusting the body line to SKIP sizing is safe: skipping can never
+grant anything. Clearance itself is only ever derived from the real
+sub-issue link, by a central job that can read every repository.
+
+**Otherwise** (no native parent and no declaration line): size
+normally per the rest of this section.
 
 ### MICRO declarations (fast-lane) — check SECOND, before sizing
 
@@ -469,13 +486,12 @@ fi
 # Continue main triage prompt
 cat >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt" << 'EOF'
 
-## Sizing & Approval Footer (REQUIRED — every issue EXCEPT carried-approval and confirmed micro fast-lane)
+## Sizing & Approval Footer (REQUIRED — every issue EXCEPT sub-issues and confirmed micro fast-lane)
 
-**Exceptions**: a sub-issue that carries its parent's approval, and an
-issue whose micro fast-lane declaration you judged plausible (see the
-two checks in Sizing Guidelines), get NO footer at all — their
-comments end with the one-line carried-approval or micro-fast-lane
-statement instead.
+**Exceptions**: a sub-issue (decided on its parent), and an issue
+whose micro fast-lane declaration you judged plausible (see the two
+checks in Sizing Guidelines), get NO footer at all — their comments
+end with the one-line sub-issue or micro-fast-lane statement instead.
 Every other triaged issue ends with a **separate**, consistently-formatted
 footer — the ONLY part of your comment the approver (an admin/owner,
 not a developer) needs to read. It is not a summary of the technical
@@ -678,9 +694,9 @@ the footer, never after it:
 2. A "### Related Source Code" section with links to relevant files (REQUIRED - see below)
 3. Technical insights and recommendations (include the `### Sizing Decision Needed` developer-facing table here when `sizeAmbiguous` — see Sizing Guidelines)
 4. The "## 📋 Sizing & Approval" footer (REQUIRED for every issue
-   EXCEPT a carried-approval sub-issue or a confirmed micro fast-lane
-   issue, which get the one-line carried-approval or micro-fast-lane
-   statement here instead — see Sizing Guidelines), and NOTHING
+   EXCEPT a sub-issue or a confirmed micro fast-lane issue, which get
+   the one-line sub-issue or micro-fast-lane statement here instead —
+   see Sizing Guidelines), and NOTHING
    human-readable after it — it is the literal last thing before the
    hidden metadata, not just "near the end." If step 2 or 3's content
    would otherwise land after this footer, reorder so it doesn't.
@@ -697,17 +713,17 @@ Clear-size case:
 Ambiguous-size case (include a `### Sizing Decision Needed` table in the comment body — see Sizing Guidelines):
 <!-- ==METADATA=={"priority":"...","sizeAmbiguous":true,"sizeOptions":[{"strategy":"...","pro":"...","con":"...","size":"S"},{"strategy":"...","pro":"...","con":"...","size":"M"}],"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[{"issue":123,"confidence":"HIGH"}],"needsInfo":false}==METADATA== -->
 
-Carried-approval sub-issue case (no footer — see Sizing Guidelines):
-<!-- ==METADATA=={"priority":"...","carriedApproval":true,"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[],"needsInfo":false}==METADATA== -->
+Sub-issue case (no footer — see Sizing Guidelines; add `"carriedApproval":true` only if the native parent was read and is already size-approved):
+<!-- ==METADATA=={"priority":"...","subIssue":true,"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[],"needsInfo":false}==METADATA== -->
 
 Confirmed micro fast-lane case (no footer — see Sizing Guidelines):
 <!-- ==METADATA=={"priority":"...","microFastLane":true,"areas":["..."],"specialFlags":["..."],"issueType":"...","duplicates":[],"needsInfo":false}==METADATA== -->
 
 Omit `"size"` entirely when `sizeAmbiguous` is true — do not guess a
 size and also flag it ambiguous, the two are mutually exclusive. When
-`carriedApproval` or `microFastLane` is true, omit BOTH `"size"` and
+`subIssue` or `microFastLane` is true, omit BOTH `"size"` and
 `"sizeAmbiguous"` (the two flags are themselves mutually exclusive —
-a sub-issue of an approved parent is carried approval, not micro).
+a sub-issue is decided on its parent, never micro on its own).
 
 The JSON must be wrapped by `==METADATA==` on BOTH sides, exactly as
 in the examples above — the closing marker before `-->` is required;
