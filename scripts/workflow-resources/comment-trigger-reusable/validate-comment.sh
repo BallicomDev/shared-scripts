@@ -23,6 +23,20 @@
 
 set -e
 
+# Commands that have their own dedicated handler are not answered here.
+# A comment whose FIRST line is one of these is already claimed elsewhere;
+# responding here as well would double-answer it, with two handlers racing
+# and the generic one usually replying first.
+# Anchored to the start of the first line on purpose: a comment that merely
+# mentions a command mid-sentence is ordinary prose and IS handled here.
+DEDICATED_COMMANDS='^[[:space:]]*(/review|@claude re-review|@claude review)([[:space:]]|$)'
+
+if echo "$COMMENT_BODY" | head -n 1 | grep -qiE "$DEDICATED_COMMANDS"; then
+  echo "Dedicated-handler command detected, skipping..."
+  echo "proceed=false" >> "$GITHUB_OUTPUT"
+  exit 0
+fi
+
 # Check for @claude mention
 if echo "$COMMENT_BODY" | grep -q "@claude"; then
   echo "Claude was mentioned, proceeding..."
