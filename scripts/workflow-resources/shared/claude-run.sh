@@ -39,23 +39,45 @@ _claude_run_dir() {
   cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
 }
 
-# Echo one credential value per line, in slot order, skipping empty slots.
-claude_collect_credentials() {
+# Human-readable label for a slot, if the caller supplied one. Credentials are
+# write-only once stored, so the only way to know which account a slot holds is
+# to record it when the slot is filled. Labels are plain configuration, never
+# secret. Slot 0 reads <PREFIX>_LABEL_1, slot 1 reads <PREFIX>_LABEL_2, ...
+_claude_slot_label() {
+  local slot_number="$1"
   local prefix="${CLAUDE_CREDENTIAL_PREFIX:-CLAUDE_CODE_OAUTH_TOKEN}"
-  local value name index
+  local name="${prefix}_LABEL_${slot_number}"
+  printf '%s' "${!name:-}"
+}
 
-  value="${!prefix:-}"
-  if [ -n "$value" ]; then
-    printf '%s\n' "$value"
+# Echo the slot NUMBER of each non-empty slot, one per line, in order.
+# Deliberately never echoes a credential value: the value is read by indirect
+# expansion at the point of use, so it never reaches a pipe, a log or a
+# subshell's output.
+claude_collect_slots() {
+  local prefix="${CLAUDE_CREDENTIAL_PREFIX:-CLAUDE_CODE_OAUTH_TOKEN}"
+  local name index
+
+  if [ -n "${!prefix:-}" ]; then
+    printf '1\n'
   fi
 
   for (( index=2; index<=CLAUDE_CREDENTIAL_MAX_SLOTS; index++ )); do
     name="${prefix}_${index}"
-    value="${!name:-}"
-    if [ -n "$value" ]; then
-      printf '%s\n' "$value"
+    if [ -n "${!name:-}" ]; then
+      printf '%s\n' "$index"
     fi
   done
+}
+
+# Name of the environment variable holding slot N's credential.
+_claude_slot_var() {
+  local prefix="${CLAUDE_CREDENTIAL_PREFIX:-CLAUDE_CODE_OAUTH_TOKEN}"
+  if [ "$1" -eq 1 ]; then
+    printf '%s' "$prefix"
+  else
+    printf '%s_%s' "$prefix" "$1"
+  fi
 }
 
 claude_run_with_failover() {
@@ -66,13 +88,13 @@ claude_run_with_failover() {
   local classifier
   classifier="$(_claude_run_dir)/classify-outcome.py"
 
-  local -a credentials=()
+  local -a slots=()
   local line
   while IFS= read -r line; do
-    [ -n "$line" ] && credentials+=("$line")
-  done < <(claude_collect_credentials)
+    [ -n "$line" ] && slots+=("$line")
+  done < <(claude_collect_slots)
 
-  local total=${#credentials[@]}
+  local total=${#slots[@]}
   if [ "$total" -eq 0 ]; then
     echo "ERROR: no credential available (${prefix} is unset or empty)" >&2
     return 1
@@ -84,19 +106,24 @@ claude_run_with_failover() {
   [ -n "$seed" ] || seed=0
   local start=$(( seed % total ))
 
-  local attempt index exit_code=1 classification="other_failure" class_json=""
+  local attempt position slot slot_var label exit_code=1
+  local classification="other_failure" class_json=""
   local all_exhausted=1
 
   CLAUDE_RUN_SLOTS_TRIED=0
 
   for (( attempt=0; attempt<total; attempt++ )); do
-    index=$(( (start + attempt) % total ))
-    echo "CLI attempt $((attempt + 1)) of ${total} (credential slot ${index})"
+    position=$(( (start + attempt) % total ))
+    slot="${slots[$position]}"
+    slot_var="$(_claude_slot_var "$slot")"
+    label="$(_claude_slot_label "$slot")"
+    echo "CLI attempt $((attempt + 1)) of ${total} (credential slot ${slot}${label:+ — ${label}})"
     CLAUDE_RUN_SLOTS_TRIED=$((attempt + 1))
 
-    export "${prefix}=${credentials[$index]}"
-
-    claude "$@" 2>&1 | tee "$capture_file"
+    # Passed to the child only. Assigning it in this shell would overwrite
+    # slot 1's own value, so a second call in the same shell would find slot 1
+    # holding whichever credential the previous call happened to finish on.
+    env "${prefix}=${!slot_var}" claude "$@" 2>&1 | tee "$capture_file"
     exit_code=${PIPESTATUS[0]}
 
     class_json="$(python3 "$classifier" "$capture_file" ${CLAUDE_ACTION_MARKER:+--action-marker "$CLAUDE_ACTION_MARKER"})"
@@ -109,7 +136,7 @@ claude_run_with_failover() {
     echo "Outcome classification: ${classification}${CLAUDE_RUN_LIMIT_TYPE:+ (${CLAUDE_RUN_LIMIT_TYPE})}"
 
     if [ "$classification" = "capacity_exhausted" ]; then
-      echo "Credential slot ${index} was rejected for capacity; trying the next slot if one remains"
+      echo "Credential slot ${slot}${label:+ (${label})} was rejected for capacity; trying the next slot if one remains"
       continue
     fi
 
