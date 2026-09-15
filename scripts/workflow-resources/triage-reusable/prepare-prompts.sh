@@ -824,15 +824,20 @@ Your role is EXCLUSIVELY analysis and commenting.
 **Duplicate marking** (works in comments, creates duplicate link):
 - `Duplicate of #X` - Only use when explicitly marking duplicates
 
-**Safe alternatives**:
-- Instead of "This fixes #123" → use "This addresses #123"
-- Instead of "This is a duplicate of #123" → use "This appears related to #123" (unless you want the duplicate link)
+**Safe alternatives** (and note the reference form — see the link rules below):
+- Instead of "This fixes #123" → use "This addresses https://github.com/REPOSITORY/issues/123"
+- Instead of "This is a duplicate of #123" → use "This appears related to https://github.com/REPOSITORY/issues/123" (unless you want the duplicate link)
 
 When referencing duplicates in your analysis:
 - List them in the metadata: `"duplicates":[{"issue":123,"confidence":"HIGH"}]`
-- Mention them in text using safe phrases: "This appears related to #123" or "See also #123"
+- Mention them in text using safe phrases: "This appears related to <url>" or "See also <url>"
 - Do NOT use "Duplicate of #X" in comments (reserved for when we actually want to mark as duplicate)
 EOF
+
+# The GitHub link rules are inlined from their single source file
+# (../shared/agent-rules.md) rather than restated here.
+cat "$(dirname "${BASH_SOURCE[0]}")/../shared/agent-rules.md" \
+  >> "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"
 
 # Replace placeholders in triage prompt
 sed -i "s|REPOSITORY|${REPOSITORY}|g" "${RUNNER_TEMP}/claude-prompts/triage-analysis.txt"

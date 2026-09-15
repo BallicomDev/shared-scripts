@@ -40,11 +40,20 @@ fi
 
 # Append prompt-extra content if it exists
 if [ -f ".github/prompt_extra/bug_reproducer_prompt_extra.md" ]; then
-  echo "## Project-Specific Context" >> "$PROMPT_DIR/bug-reproduction.txt"
-  echo "" >> "$PROMPT_DIR/bug-reproduction.txt"
-  cat .github/prompt_extra/bug_reproducer_prompt_extra.md >> "$PROMPT_DIR/bug-reproduction.txt"
-  echo "" >> "$PROMPT_DIR/bug-reproduction.txt"
+  {
+    echo "## Project-Specific Context"
+    echo ""
+    cat .github/prompt_extra/bug_reproducer_prompt_extra.md
+    echo ""
+  } >> "$PROMPT_DIR/bug-reproduction.txt"
 fi
+
+# The GitHub link rules are inlined from their single source file
+# (../shared/agent-rules.md) rather than restated here.
+{
+  cat "$(dirname "${BASH_SOURCE[0]}")/../shared/agent-rules.md"
+  echo ""
+} >> "$PROMPT_DIR/bug-reproduction.txt"
 
 # Add task instructions
 cat >> "$PROMPT_DIR/bug-reproduction.txt" << 'EOF'
