@@ -21,8 +21,12 @@
 # credential. Return value:
 #   0..74, 76+  the CLI's own exit code from the attempt that ran
 #   75          every available credential was rejected for capacity
+#   76          a tool server failed to start; the names are in
+#               CLAUDE_RUN_FAILED_SERVERS. Another credential cannot fix it, so
+#               the run is not retried.
 
 CLAUDE_CAPACITY_EXHAUSTED_RC=75
+CLAUDE_TOOL_SERVER_UNAVAILABLE_RC=76
 
 # Number of slots probed. Well above any plausible credential count; probing a
 # slot that does not exist costs nothing.
@@ -33,6 +37,7 @@ export CLAUDE_RUN_CLASSIFICATION=""
 export CLAUDE_RUN_RESETS_AT_EPOCH=""
 export CLAUDE_RUN_RESETS_RAW=""
 export CLAUDE_RUN_LIMIT_TYPE=""
+export CLAUDE_RUN_FAILED_SERVERS=""
 export CLAUDE_RUN_SLOTS_TRIED=0
 
 _claude_run_dir() {
@@ -132,12 +137,18 @@ claude_run_with_failover() {
     CLAUDE_RUN_RESETS_AT_EPOCH="$(printf '%s' "$class_json" | jq -r '.resets_at_epoch // empty')"
     CLAUDE_RUN_RESETS_RAW="$(printf '%s' "$class_json" | jq -r '.resets_raw // empty')"
     CLAUDE_RUN_LIMIT_TYPE="$(printf '%s' "$class_json" | jq -r '.limit_type // empty')"
+    CLAUDE_RUN_FAILED_SERVERS="$(printf '%s' "$class_json" | jq -r '(.failed_servers // []) | join(",")')"
 
     echo "Outcome classification: ${classification}${CLAUDE_RUN_LIMIT_TYPE:+ (${CLAUDE_RUN_LIMIT_TYPE})}"
 
     if [ "$classification" = "capacity_exhausted" ]; then
       echo "Credential slot ${slot}${label:+ (${label})} was rejected for capacity; trying the next slot if one remains"
       continue
+    fi
+
+    if [ "$classification" = "mcp_unavailable" ]; then
+      echo "ERROR: Tool server failed to start: ${CLAUDE_RUN_FAILED_SERVERS}. The run could not use its tools, so it is reported as failed." >&2
+      return "$CLAUDE_TOOL_SERVER_UNAVAILABLE_RC"
     fi
 
     all_exhausted=0

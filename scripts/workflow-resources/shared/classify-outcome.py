@@ -12,6 +12,9 @@ Classifications:
     capacity_exhausted  the credential was rejected for usage/limit reasons;
                         a different credential may still succeed
     submitted           the marker tool call was seen, so the action happened
+    mcp_unavailable     the init event reported a tool server that failed to
+                        start (names in "failed_servers"); another credential
+                        cannot fix it
     other_failure       anything else; retrying with another credential will
                         not help
 
@@ -128,6 +131,22 @@ def _has_action_marker_tool_use(obj: dict[str, Any], marker: str) -> bool:
     return False
 
 
+def _failed_tool_servers(objects: list[dict[str, Any]]) -> list[str]:
+    """Names of tool servers the init event reports as failed to start."""
+    failed: list[str] = []
+    for obj in objects:
+        if obj.get("type") != "system" or obj.get("subtype") != "init":
+            continue
+        servers = obj.get("mcp_servers")
+        if not isinstance(servers, list):
+            continue
+        for server in servers:
+            if isinstance(server, dict) and server.get("status") == "failed":
+                name = server.get("name")
+                failed.append(name if isinstance(name, str) and name else "unnamed")
+    return failed
+
+
 def classify(lines: list[str], action_marker: Optional[str] = None) -> dict[str, Any]:
     """Classify a captured stream-json transcript.
 
@@ -176,6 +195,16 @@ def classify(lines: list[str], action_marker: Optional[str] = None) -> dict[str,
                     "resets_at_epoch": None,
                     "limit_type": None,
                 }
+
+    failed_servers = _failed_tool_servers(objects)
+    if failed_servers:
+        return {
+            "classification": "mcp_unavailable",
+            "resets_raw": None,
+            "resets_at_epoch": None,
+            "limit_type": None,
+            "failed_servers": failed_servers,
+        }
 
     return {
         "classification": "other_failure",
